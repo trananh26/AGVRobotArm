@@ -1,0 +1,13 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/ACS.BL/obj/Debug
+/.vs/AGVControlSystem
+/ACS.Common/obj/Debug
+/ACS.Common/bin/Debug
+/ACS.Common/.vs
+/ACS.DL/bin/Debug
+/ACS.DL/.vs
+/ACS.DL/obj/Debug
+/AGVControlSystem/obj/Debug
