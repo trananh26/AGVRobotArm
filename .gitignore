@@ -3,11 +3,14 @@
 ################################################################################
 
 /ACS.BL/obj/Debug
-/.vs/AGVControlSystem
+/.vs/RobotControlSystem
 /ACS.Common/obj/Debug
 /ACS.Common/bin/Debug
 /ACS.Common/.vs
 /ACS.DL/bin/Debug
 /ACS.DL/.vs
 /ACS.DL/obj/Debug
-/AGVControlSystem/obj/Debug
+/RobotControlSystem/obj/Debug
+/.vs/AGVControlSystem/CopilotIndices/17.13.444.19527
+/.vs/AGVControlSystem
+/RobotControlSystem/.vs
