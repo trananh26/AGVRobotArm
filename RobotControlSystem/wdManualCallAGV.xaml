@@ -1,0 +1,69 @@
+﻿<Window x:Class="RobotControlSystem.wdManualCallAGV"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:RobotControlSystem"
+        mc:Ignorable="d" WindowStyle="None" 
+        Title="wdManualCallAGV" Height="200" Width="400"        
+        Loaded="Window_Loaded" Background="#25232A"
+        WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="0.8*"/>
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0">
+            <TextBlock Text="MANUAL CONTROL" VerticalAlignment="Center" Foreground="Wheat"
+                       HorizontalAlignment="Center" FontWeight="Bold" FontSize="20"/>
+        </Grid>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="0.5*"/>
+                <ColumnDefinition Width="1*"/>
+            </Grid.ColumnDefinitions>
+            <Grid Grid.Column="0">
+                <TextBlock Text="AGV ID" VerticalAlignment="Center" Margin="10,0,0,0" FontSize="14" Foreground="White"/>
+            </Grid>
+            <Grid Grid.Column="1">
+                <ComboBox x:Name="cboAGVID" VerticalAlignment="Center" Width="250" FontSize="14" Foreground="#8D3637">
+                    <ComboBoxItem Content="001"/>
+                    <ComboBoxItem Content="002"/>
+                </ComboBox>
+            </Grid>
+        </Grid>
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="0.5*"/>
+                <ColumnDefinition Width="1*"/>
+            </Grid.ColumnDefinitions>
+            <Grid Grid.Column="0">
+                <TextBlock Text="Choose Node" VerticalAlignment="Center" Margin="10,0,0,0" FontSize="14" Foreground="White"/>
+            </Grid>
+            <Grid Grid.Column="1">
+                <ComboBox x:Name="cboNode" VerticalAlignment="Center" Width="250" FontSize="14" Foreground="#8D3637"/>
+            </Grid>
+        </Grid>
+
+        <Grid Grid.Row="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1*"/>
+            </Grid.ColumnDefinitions>
+            <Grid Grid.Column="1">
+                <Button Width="120" x:Name="btnOK" Background="#633B48" BorderThickness="0"
+                    Content="Call AGV" Click="btnOK_Click" FontFamily="Times New Roman"
+                    HorizontalAlignment="Right" Margin="0,0,10,0"/>
+            </Grid>
+            <Grid Grid.Column="2">
+                <Button Width="120" x:Name="btnClose" Background="#633B48" BorderThickness="0"
+                    Content="Cancel" Click="btnClose_Click" FontFamily="Times New Roman"
+                    HorizontalAlignment="Right" Margin="0,0,10,0"/>
+            </Grid>
+
+        </Grid>
+    </Grid>
+</Window>
