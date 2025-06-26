@@ -14,3 +14,10 @@
 /.vs/AGVControlSystem/CopilotIndices/17.13.444.19527
 /.vs/AGVControlSystem
 /RobotControlSystem/.vs
+/RobotControlSystem/bin/Debug/Microsoft.Bcl.AsyncInterfaces.dll
+/RobotControlSystem/bin/Debug/RobotControlSystem.exe
+/RobotControlSystem/bin/Debug/RobotControlSystem.exe.config
+/RobotControlSystem/bin/Debug/RobotControlSystem.pdb
+/RobotControlSystem/bin/Debug/System.Buffers.dll
+/RobotControlSystem/bin/Debug/System.Memory.dll
+/RobotControlSystem/bin/Debug/System.Runtime.CompilerServices.Unsafe.dll

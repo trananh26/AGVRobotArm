@@ -36,6 +36,7 @@
                 <RowDefinition Height="2*"/>
                 <RowDefinition Height="2*"/>
                 <RowDefinition Height="2*"/>
+                <RowDefinition Height="2*"/>
                 <RowDefinition Height="10*"/>
                 <RowDefinition Height="1.5*"/>
             </Grid.RowDefinitions>
@@ -57,14 +58,25 @@
                 <Button Height="69"  Background="#2E4053" BorderBrush="#2E4053"
                  x:Name="btnAGV" Click="btnAGV_Click" />
 
-                <md:PackIcon Kind="RobotVacuum" Width="35" Height="35" VerticalAlignment="Center" 
+                <md:PackIcon Kind="Car" Width="35" Height="35" VerticalAlignment="Center" 
                                   MouseDown="btnAGV_Click" Margin="30,0,0,0" Background="#2E4053"/>
-                <TextBlock Text="Robot Operation" FontSize="16" Height="20" Margin="90,0,0,0" Foreground="White"
+                <TextBlock Text="AGV Operation" FontSize="16" Height="20" Margin="90,0,0,0" Foreground="White"
                     MouseDown="btnAGV_Click"/>
                 <Rectangle StrokeThickness="1" Width="1" HorizontalAlignment="Right" Fill="Gray"></Rectangle>
             </Grid>
 
             <Grid Grid.Row="3" Background="#2E4053">
+                <Button Height="69"  Background="#2E4053" BorderBrush="#2E4053"
+                 x:Name="btnRobot" Click="btnRobot_Click"  />
+
+                <md:PackIcon Kind="RobotIndustrial" Width="35" Height="35" VerticalAlignment="Center" 
+                                  MouseDown="btnRobot_Click" Margin="30,0,0,0" Background="#2E4053"/>
+                <TextBlock Text="Robot Operation" FontSize="16" Height="20" Margin="90,0,0,0" Foreground="White"
+                    MouseDown="btnRobot_Click"/>
+                <Rectangle StrokeThickness="1" Width="1" HorizontalAlignment="Right" Fill="Gray"></Rectangle>
+            </Grid>
+
+            <Grid Grid.Row="5" Background="#2E4053">
                 <Button Height="69"  Background="#2E4053" BorderBrush="#2E4053"
                  x:Name="btnCrCommand" Click="btnCrCommand_Click">
                 </Button>
@@ -74,7 +86,7 @@
                     MouseDown="btnCrCommand_Click" Margin="90,0,0,0"/>
                 <Rectangle StrokeThickness="1" Width="1" HorizontalAlignment="Right" Fill="Gray"></Rectangle>
             </Grid>
-            <Grid Grid.Row="4" Background="#2E4053">
+            <Grid Grid.Row="6" Background="#2E4053">
                 <Button Height="69"  Background="#2E4053" BorderBrush="#2E4053"
                  x:Name="btnHistory" Click="btnCommandHistory_Click">
                 </Button>
@@ -84,7 +96,7 @@
                         MouseDown="btnCommandHistory_Click" Foreground="White"/>
                 <Rectangle StrokeThickness="1" Width="1" HorizontalAlignment="Right" Fill="Gray"></Rectangle>
             </Grid>
-            <Grid Grid.Row="5" Background="#2E4053">
+            <Grid Grid.Row="7" Background="#2E4053">
                 <Button Height="69"  Background="#2E4053" BorderBrush="#2E4053"
                 x:Name="btnReport" Click="btnReport_Click">
                 </Button>
@@ -94,7 +106,7 @@
                     Margin="90,0,0,0" MouseDown="btnReport_Click"/>
                 <Rectangle StrokeThickness="1" Width="1" HorizontalAlignment="Right" Fill="Gray"></Rectangle>
             </Grid>
-            <Grid Grid.Row="6" Background="#2E4053">
+            <Grid Grid.Row="4" Background="#2E4053">
                 <Button Height="69"  Background="#2E4053" BorderBrush="#2E4053"
                  x:Name="btnControl" Click="btnManualControl_Click">
                 </Button>
@@ -104,7 +116,7 @@
                     Margin="90,0,0,0" MouseDown="btnManualControl_Click"/>
                 <Rectangle StrokeThickness="1" Width="1" HorizontalAlignment="Right" Fill="Gray"></Rectangle>
             </Grid>
-            <Grid Grid.Row="8" Background="#2E4053">
+            <Grid Grid.Row="9" Background="#2E4053">
                 <Button Height="69"  Background="#2E4053" BorderBrush="#2E4053"
                  x:Name="btnSetting" Click="btnSetting_Click">
                 </Button>
@@ -115,7 +127,7 @@
                 <Rectangle StrokeThickness="1" Width="1" HorizontalAlignment="Right" Fill="Gray"></Rectangle>
             </Grid>
 
-            <Grid Grid.Row="7" Background="#2E4053">
+            <Grid Grid.Row="8" Background="#2E4053">
                 <Button Height="75" x:Name="btnHelp" Click="btnHelp_Click"  VerticalAlignment="Top"
                  Background="#2E4053" BorderBrush="#2E4053">
                 </Button>
@@ -126,7 +138,7 @@
                 <Rectangle StrokeThickness="1" Width="1" HorizontalAlignment="Right" Fill="Gray"></Rectangle>
             </Grid>
 
-            <Grid Grid.Row="9" Background="#2E4053">
+            <Grid Grid.Row="10" Background="#2E4053">
                 <Button Height="69" x:Name="btnExit" Click="btnExit_Click"  VerticalAlignment="Top"
                  Background="#2E4053" BorderBrush="#2E4053" >
                 </Button>
@@ -136,12 +148,12 @@
                         Foreground="White" MouseDown="btnExit_Click"/>
                 <Rectangle StrokeThickness="1" Width="1" HorizontalAlignment="Right" Fill="Gray"></Rectangle>
             </Grid>
-            <Grid Grid.Row="10" Background="#2E4053">
+            <Grid Grid.Row="11" Background="#2E4053">
                 <Rectangle StrokeThickness="1" Width="1" HorizontalAlignment="Right" Fill="Gray"></Rectangle>
 
             </Grid>
 
-            <Grid Grid.Row="11" Background="#2E4053">
+            <Grid Grid.Row="12" Background="#2E4053">
                 <Image Source=".\Resources\Logo user.png"
                 Width="60" HorizontalAlignment="Left"/>
                 <TextBlock x:Name="lblUser" Text="SEEE_Automation" Foreground="White" FontSize="12" Height="15" Margin="60,0,0,0"/>
@@ -405,8 +417,8 @@
                 </Grid>
             </Grid>
             <Grid Grid.Row="2">
-                
-               
+
+
 
 
                 <!--Map hoạt động chính-->
@@ -414,7 +426,7 @@
                     <Rectangle Width="1" HorizontalAlignment="Left"/>
 
                     <StackPanel Name="map"  >
-                        <Canvas x:Name="cvs_Map" Margin="0,20,0,0"
+                        <Canvas x:Name="cvs_Map" Margin="20,-55,0,0"
                              RenderTransformOrigin="0.5,0.5">
                             <Canvas.RenderTransform>
                                 <MatrixTransform x:Name="mt"/>
@@ -518,90 +530,131 @@
                     </Grid>
                 </Grid>
 
+                <!--Grid Setting Robot-->
+                <Grid x:Name="Grid_Robot" Background="#E8E8E8">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="1.5*"/>
+                        <RowDefinition Height="19*"/>
+                    </Grid.RowDefinitions>
+                    <Grid Grid.Row="0" >
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid Grid.Column="0" Background="White">
+                            <Image Source=".\Resources\Moitruong.jpg" HorizontalAlignment="Left" 
+                                    Height="35" Width="35" Margin="20,0,0,0"/>
+                            <TextBlock Text="Điều khiển cảnh tay robot" FontSize="20" FontWeight="DemiBold"
+                                    VerticalAlignment="Center" Margin="60,0,0,0" Height="25"/>
+                        </Grid>
+
+                    </Grid>
+                    <Grid Grid.Row="1">
+
+
+                    </Grid>
+                </Grid>
                 <!--Map xử lý ảnh-->
                 <Grid x:Name="Grid_Vision" Background="White">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="950"/>
-                        <ColumnDefinition Width="2*"/>
-                    </Grid.ColumnDefinitions>
-                    <Grid Grid.Column="0">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="3*"/>
-                            <RowDefinition Height="1*"/>
-                        </Grid.RowDefinitions>
-                        <Grid Grid.Row="0" Background="DarkOrange">
-                            <Grid>
-                                <Image x:Name="img_InputImage" Grid.Row="0" Grid.Column="0" Stretch="Uniform"/>
-                            </Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="1.5*"/>
+                        <RowDefinition Height="19*"/>
+                    </Grid.RowDefinitions>
+                    <Grid Grid.Row="0" >
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid Grid.Column="0" Background="White">
+                            <Image Source=".\Resources\Moitruong.jpg" HorizontalAlignment="Left" 
+                                    Height="35" Width="35" Margin="20,0,0,0"/>
+                            <TextBlock Text="Phân loại sản phẩm" FontSize="20" FontWeight="DemiBold"
+                                    VerticalAlignment="Center" Margin="60,0,0,0" Height="25"/>
                         </Grid>
-                        <Grid Grid.Row="1">
-                            <DataGrid x:Name="dtg_Result" IsReadOnly="True" 
-                                SelectedCellsChanged="dtgVision_SelectedCellsChanged"/>
-                        </Grid>
+
                     </Grid>
-                    <Grid Grid.Column="1" >
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="1*"/>
-                            <RowDefinition Height="0.5*"/>
-                            <RowDefinition Height="0.3*"/>
-                        </Grid.RowDefinitions>
-                        <Grid Grid.Row="0" Background="DarkGreen">
-                            <Image x:Name="img_Camera" Grid.Row="0" Grid.Column="0" Stretch="Fill"/>
-                        </Grid>
-                        <Grid Grid.Row="1">
-                            <TextBlock Text="OK" FontSize="110" FontWeight="DemiBold"
-                                VerticalAlignment="Center" HorizontalAlignment="Center" Height="125"/>
-                        </Grid>
-                        <Grid Grid.Row="2" Background="DarkGray">
+                    <Grid Grid.Row="1">
+
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="950"/>
+                            <ColumnDefinition Width="2*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid Grid.Column="0">
                             <Grid.RowDefinitions>
-                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="3*"/>
                                 <RowDefinition Height="1*"/>
                             </Grid.RowDefinitions>
-                            <Grid Grid.Row="0" >
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="1*"/>
-                                    <ColumnDefinition Width="1*"/>
-                                    <ColumnDefinition Width="1*"/>
-                                </Grid.ColumnDefinitions>
+                            <Grid Grid.Row="0" Background="DarkOrange">
+                                <Grid>
+                                    <Image x:Name="img_InputImage" Grid.Row="0" Grid.Column="0" Stretch="Uniform"/>
+                                </Grid>
+                            </Grid>
+                            <Grid Grid.Row="1">
+                                <DataGrid x:Name="dtg_Result" IsReadOnly="True" 
+                                SelectedCellsChanged="dtgVision_SelectedCellsChanged"/>
+                            </Grid>
+                        </Grid>
+                        <Grid Grid.Column="1" >
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="1*"/>
+                                <RowDefinition Height="0.5*"/>
+                                <RowDefinition Height="0.3*"/>
+                            </Grid.RowDefinitions>
+                            <Grid Grid.Row="0" Background="DarkGreen">
+                                <Image x:Name="img_Camera" Grid.Row="0" Grid.Column="0" Stretch="Fill"/>
+                            </Grid>
+                            <Grid Grid.Row="1">
+                                <Label x:Name="lblImageStatus" Content="OK" FontSize="110" FontWeight="DemiBold"
+                                VerticalAlignment="Center" HorizontalAlignment="Center" Height="125" Foreground="Green"/>
+                            </Grid>
+                            <Grid Grid.Row="2" Background="DarkGray">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="1*"/>
+                                    <RowDefinition Height="1*"/>
+                                </Grid.RowDefinitions>
+                                <Grid Grid.Row="0" >
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="1*"/>
+                                        <ColumnDefinition Width="1*"/>
+                                        <ColumnDefinition Width="1*"/>
+                                    </Grid.ColumnDefinitions>
 
-                                <Grid Grid.Column="0" >
-                                    <Button x:Name="btn_OpenImage" Content="Chọn ảnh" FontSize="18"
+                                    <Grid Grid.Column="0" >
+                                        <Button x:Name="btn_OpenImage" Content="Chọn ảnh" FontSize="18"
                                         Click="btn_OpenImage_Click" Width="180" Height="50"/>
-                                </Grid>
+                                    </Grid>
 
-                                <Grid Grid.Column="1" >
-                                    <Button x:Name="btn_TakeImage" Content="Chụp ảnh" FontSize="18"
+                                    <Grid Grid.Column="1" >
+                                        <Button x:Name="btn_TakeImage" Content="Chụp ảnh" FontSize="18"
                                         Click="btn_TakeImage_Click" Width="180" Height="50"/>
-                                </Grid>
+                                    </Grid>
 
-                                <Grid Grid.Column="2" >
-                                    <Button x:Name="btn_Train" Content="Huấn luyện" FontSize="18"
+                                    <Grid Grid.Column="2" >
+                                        <Button x:Name="btn_Train" Content="Huấn luyện" FontSize="18"
                                         Click="btn_Train_Click"  Width="180" Height="50"/>
-                                </Grid>
-                            </Grid>
-
-                            <Grid Grid.Row="1" >
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="1*"/>
-                                    <ColumnDefinition Width="1*"/>
-                                    <ColumnDefinition Width="1*"/>
-                                </Grid.ColumnDefinitions>
-
-                                <Grid Grid.Column="0" >
-                                    <Button Width="180" Height="50"/>
+                                    </Grid>
                                 </Grid>
 
-                                <Grid Grid.Column="1" >
-                                    <Button x:Name="btn_Pass" Content="Cho Pass" FontSize="18"
+                                <Grid Grid.Row="1" >
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="1*"/>
+                                        <ColumnDefinition Width="1*"/>
+                                        <ColumnDefinition Width="1*"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <Grid Grid.Column="0" >
+                                        <Button Width="180" Height="50"/>
+                                    </Grid>
+
+                                    <Grid Grid.Column="1" >
+                                        <Button x:Name="btn_Pass" Content="Cho Pass" FontSize="18"
                                         Click="btn_Pass_Click" Width="180" Height="50"/>
-                                </Grid>
+                                    </Grid>
 
-                                <Grid Grid.Column="2" >
-                                    <Button x:Name="btn_Fail" Content="Cho Fail" FontSize="18"
+                                    <Grid Grid.Column="2" >
+                                        <Button x:Name="btn_Fail" Content="Cho Fail" FontSize="18"
                                         Click="btn_Fail_Click" Width="180" Height="50"/>
+                                    </Grid>
                                 </Grid>
                             </Grid>
-
                         </Grid>
                     </Grid>
 

@@ -34,6 +34,8 @@ using System.Windows.Threading;
 using System.Xml.Linq;
 using static System.Net.Mime.MediaTypeNames;
 using System.Runtime.InteropServices;
+using ActUtlTypeLib;
+using System.Net.NetworkInformation;
 
 namespace RobotControlSystem
 {
@@ -92,6 +94,45 @@ namespace RobotControlSystem
         private const int RETRY_DELAY_MS = 1000;
         private const string TRAINING_HISTORY_FILE = "training_history.json";
         private string templateFolder = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TemplateData");
+        private bool detectResult = true; // Biến này để kiểm tra kết quả phát hiện đối tượng
+        private ActUtlType PLC = new ActUtlType();
+        private string IPCamera = "192.168.3.150";
+        private string IP_PLC = "192.168.3.250";
+
+
+        // Cache cho query để tránh tạo lại string
+        private static readonly string _cachedAGVQuery = @"
+            SELECT A.ID AS AGVID, A.BAYID AS BAYID,A.FULLSTATE,A.CURRENTNODEID AS CURRENTTAG, 
+                                    B.XPOS AS X_POS, YPOS AS Y_POS, A.ALARMSTATE AS ALARM, STATUS,
+                                    A.RUNSTATE AS RUNSTATE, A.CONNECTIONSTATE AS CONNECTIONSTATE,
+                                    TRANSPORTCOMMANDID, Direction, DESTNODEID, PATH
+                                    FROM NA_R_VEHICLE A,NA_R_NODE B
+                                    WHERE A.CURRENTNODEID = B.ID";
+
+        /// <summary>
+        /// Query tối ưu để lấy thông tin AGV với các tùy chọn filtering
+        /// </summary>
+        /// <param name="onlyConnected">Chỉ lấy AGV đang kết nối</param>
+        /// <param name="onlyActive">Chỉ lấy AGV đang hoạt động</param>
+        /// <returns>Query string được tối ưu</returns>
+        private string GetOptimizedAGVQuery(bool onlyConnected = true, bool onlyActive = false)
+        {
+            // Sử dụng cached query nếu có thể
+            if (onlyConnected && !onlyActive)
+            {
+                return _cachedAGVQuery;
+            }
+
+            var query = @"
+                SELECT A.ID AS AGVID, A.BAYID AS BAYID,A.FULLSTATE,A.CURRENTNODEID AS CURRENTTAG, 
+                                    B.XPOS AS X_POS, YPOS AS Y_POS, A.ALARMSTATE AS ALARM, STATUS,
+                                    A.RUNSTATE AS RUNSTATE, A.CONNECTIONSTATE AS CONNECTIONSTATE,
+                                    TRANSPORTCOMMANDID, Direction, DESTNODEID, PATH
+                                    FROM NA_R_VEHICLE A,NA_R_NODE B
+                                    WHERE A.CURRENTNODEID = B.ID";
+
+            return query;
+        }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
@@ -99,6 +140,7 @@ namespace RobotControlSystem
             {
                 Grid_Vision.Visibility = Visibility.Visible;
                 Grid_Map.Visibility = Visibility.Hidden;
+                Grid_Robot.Visibility = Visibility.Hidden;
                 Grid_CommandHistory.Visibility = Visibility.Hidden;
                 Grid_CurrentCommand.Visibility = Visibility.Hidden;
 
@@ -107,12 +149,14 @@ namespace RobotControlSystem
                 CountCommand();
 
                 //_stk.Background = Brushes.LightGreen;
-                _stk.Height = 250;
-                _stk.Width = 820;
-                Canvas.SetLeft(_stk, 340);
-                Canvas.SetTop(_stk, 295);
-                cvs_Map.Children.Add(_stk);
+                //_stk.Height = 250;
+                //_stk.Width = 820;
+                //Canvas.SetLeft(_stk, 340);
+                //Canvas.SetTop(_stk, 295);
+                //cvs_Map.Children.Add(_stk);
                 CallAGVStartUp();
+
+                ConnectPLC();
             }
             catch (Exception ee)
             {
@@ -121,6 +165,7 @@ namespace RobotControlSystem
             }
         }
 
+       
         /// <summary>
         /// Auto Reconnect
         /// </summary>
@@ -128,6 +173,10 @@ namespace RobotControlSystem
         /// <param name="e"></param>
         private void Timer_CheckConnection_Tick(object sender, EventArgs e)
         {
+            if (PingPLC())
+            {
+                GetPLCParam();
+            }
             if (!Arduino.IsOpen)
             {
 
@@ -137,6 +186,62 @@ namespace RobotControlSystem
 
                 Arduino.DataReceived += Arduino_DataReceived;
             }
+        }
+
+        private void ConnectPLC()
+        {
+            try
+            {
+                PLC.ActLogicalStationNumber = 25;
+                PLC.Open();
+                //PLC.SetDevice("D5100", 0);
+                //PLC.SetDevice("D5200", 1);
+                //PLC.SetDevice("M1", 1);
+                MessageBox.Show("Kết nối PLC thành công", "Notification", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception)
+            {
+                MessageBox.Show("Không kết nối được với PLC. Vui lòng kiểm tra lại kết nối", "Warning", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
+        private bool PingPLC()
+        {
+            try
+            {
+                Ping PLCPing = new Ping();
+                PingReply Reply = PLCPing.Send(IP_PLC);
+                // check when the ping is not success
+                if (Reply.Status != IPStatus.Success)
+                {
+                    AlarmLog.LogAlarmToDatabase("04");
+                    MessageBox.Show("Không kết nối được với PLC. Vui lòng kiểm tra lại kết nối", "Warning", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return false;
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                AlarmLog.LogAlarmToDatabase("04");
+                MessageBox.Show("Không kết nối được với PLC. Vui lòng kiểm tra lại kết nối", "Warning", MessageBoxButton.OK, MessageBoxImage.Information);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Lấy thông số PLC
+        /// </summary>
+        private void GetPLCParam()
+        {
+            //Kiểm tra trạng thái băng tải 1
+
+            //Kiểm tra trạng thái băng tải 2 OK
+
+            //Kiểm tra trạng thái băng tải 2 NG
+
+            //Kiểm tra trạng thái băng tải 3 OK
+
+            //Kiểm tra trạng thái băng tải 3 NG
         }
 
 
@@ -288,20 +393,16 @@ namespace RobotControlSystem
                 //nếu AGV đang thực hiện lệnh
                 if (_agv.ID == IDAGV && !string.IsNullOrEmpty(_agv.TransportCommand) && runStop == "0")
                 {
-                    //Nếu đích là cửa vào nhà kho
+                    //Nếu đích là 3 OK
                     if (_agv.NODE == InputPoint)
                     {
-                        SWMPort.Write("1x");
-                        Arduino1.Write("1x");
+                       
                     }
 
-                    //Nếu đích là cửa ra nhà kho
+                    //Nếu đích là 3 NG
                     if (_agv.NODE == OutputPoint)
                     {
-                        SWMPort.Write("2x");
-                        Arduino1.Write("2x");
-                        //LẤy hàng xong thì cho nó về empty
-                        //BLTransportCommand.UpdateOutputState();
+                        
                     }
                 }
             }
@@ -386,68 +487,7 @@ namespace RobotControlSystem
 
             }
         }
-        /*
-
-        private void AGV_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                // Lấy tên của AGV từ đối tượng được nhấp vào
-                string AGV = int.Parse(((AGV_Slim)sender).AGV_Name).ToString("000");
-
-                // Tìm AGV tương ứng trong danh sách
-                AGV selectedAGV = lstAGV.FirstOrDefault(a => a.ID == AGV);
-                if (selectedAGV == null) return;
-
-                // Lấy đường đi của AGV từ điểm nguồn đến điểm đích
-                string path = GetPathForAGV(selectedAGV.CrNode, selectedAGV.Dest);
-
-                // Xóa các đường cũ (nếu có) trên bản đồ
-                cvs_Map.Children.Clear();
-
-                // Vẽ đường đi
-                DrawPathOnMap(path);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-        private void DrawPathOnMap(string path)
-        {
-            // Tách chuỗi đường đi thành các node riêng lẻ
-            string[] nodes = path.Split(',');
-
-            for (int i = 0; i < nodes.Length - 1; i++)
-            {
-                string startNode = nodes[i];
-                string endNode = nodes[i + 1];
-
-                // Tìm tọa độ của các node trong danh sách node (lstNode)
-                Node start = lstNode.FirstOrDefault(n => n.ID == startNode);
-                Node end = lstNode.FirstOrDefault(n => n.ID == endNode);
-
-                if (start != null && end != null)
-                {
-                    // Tạo đường kết nối giữa các node
-                    Line line = new Line
-                    {
-                        StrokeThickness = 2,
-                        Stroke = Brushes.Blue,
-                        X1 = start.X,
-                        Y1 = start.Y,
-                        X2 = end.X,
-                        Y2 = end.Y,
-                        ToolTip = $"Link: {startNode} -> {endNode}"
-                    };
-
-                    // Thêm đường vào canvas
-                    cvs_Map.Children.Add(line);
-                }
-            }
-        }
-        */
+       
         /// <summary>
         /// Tạo yêu cầu điều hướng AGV
         /// </summary>
@@ -697,78 +737,99 @@ namespace RobotControlSystem
 
         #region Xử lý các sự kiện di chuyển AGV
         /// <summary>
-        /// Kéo lên trạng thái AGV khi khơi tạo form
+        /// Kéo lên trạng thái AGV khi khởi tạo form
         /// </summary>
         private void AGV_check()
         {
             DataTable AGV_load = new DataTable();
 
-            string dbcomman = "";
             try
             {
-
-                dbcomman = @"SELECT A.ID AS AGVID, A.BAYID AS BAYID,A.FULLSTATE,A.CURRENTNODEID AS CURRENTTAG, 
-                                    B.XPOS AS X_POS, YPOS AS Y_POS, A.ALARMSTATE AS ALARM, STATUS,
-                                    A.RUNSTATE AS RUNSTATE, A.CONNECTIONSTATE AS CONNECTIONSTATE,
-                                    TRANSPORTCOMMANDID, Direction, DESTNODEID, PATH
-                                    FROM NA_R_VEHICLE A,NA_R_NODE B
-                                    WHERE a.CURRENTNODEID =b.ID";
+                // Sử dụng query tối ưu
+                string dbcomman = GetOptimizedAGVQuery(onlyConnected: true, onlyActive: false);
 
                 AGV_load.Clear();
                 AGV_load = BLLayout.ReadAGVCurrentParam(dbcomman);
 
-
                 Load_AGV(AGV_load);
-
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                ;
+                // Log lỗi thay vì bỏ qua
+                System.Diagnostics.Debug.WriteLine($"Lỗi khi load AGV: {ex.Message}");
             }
         }
 
         /// <summary>
-        /// Kéo dữ liệu AGV lên
+        /// Kéo dữ liệu AGV lên với error handling cải tiến
         /// </summary>
-        /// <param name="AGV_load"></param>
+        /// <param name="AGV_load">DataTable chứa dữ liệu AGV</param>
         private void Load_AGV(DataTable AGV_load)
         {
             try
             {
+                if (AGV_load == null || AGV_load.Rows.Count == 0)
+                {
+                    System.Diagnostics.Debug.WriteLine("Không có dữ liệu AGV để load");
+                    return;
+                }
+
                 for (int i = 0; i < AGV_load.Rows.Count; i++)
                 {
-                    AGV AGV_startup = new AGV();
-                    AGV_startup.ID = AGV_load.Rows[i]["AGVID"].ToString();
-                    AGV_startup.BAYID = AGV_load.Rows[i]["BAYID"].ToString();
-                    AGV_startup.STATE = AGV_load.Rows[i]["FULLSTATE"].ToString();
-                    AGV_startup.STATUS = AGV_load.Rows[i]["RUNSTATE"].ToString();
-                    AGV_startup.BATTERY = 100;
-                    AGV_startup.NODE = AGV_load.Rows[i]["CURRENTTAG"].ToString();
-                    AGV_startup.X = Convert.ToInt32(AGV_load.Rows[i]["X_POS"]);
-                    AGV_startup.Y = Convert.ToInt32(AGV_load.Rows[i]["Y_POS"]);
-                    AGV_startup.ALARM = AGV_load.Rows[i]["ALARM"].ToString();
-                    AGV_startup.CONNECTSTATE = AGV_load.Rows[i]["CONNECTIONSTATE"].ToString();
-                    AGV_startup.RUNSTATE = AGV_load.Rows[i]["RUNSTATE"].ToString();
-                    ///
-                    AGV_startup.TransportCommand = AGV_load.Rows[i]["TRANSPORTCOMMANDID"].ToString();
-                    AGV_startup.Direction = AGV_load.Rows[i]["Direction"].ToString();
-                    AGV_startup.Dest = AGV_load.Rows[i]["DESTNODEID"].ToString();
-                    AGV_startup.Path = AGV_load.Rows[i]["PATH"].ToString();
+                    try
+                    {
+                        AGV AGV_startup = new AGV();
+                        
+                        // Sử dụng safe conversion với default values
+                        AGV_startup.ID = AGV_load.Rows[i]["AGVID"]?.ToString() ?? "";
+                        AGV_startup.BAYID = AGV_load.Rows[i]["BAYID"]?.ToString() ?? "";
+                        AGV_startup.STATE = AGV_load.Rows[i]["FULLSTATE"]?.ToString() ?? "EMPTY";
+                        AGV_startup.STATUS = AGV_load.Rows[i]["RUNSTATE"]?.ToString() ?? "IDLE";
+                        AGV_startup.BATTERY = 100; // Default battery level
+                        AGV_startup.NODE = AGV_load.Rows[i]["CURRENTTAG"]?.ToString() ?? "";
+                        
+                        // Safe conversion cho tọa độ X, Y
+                        int xPos, yPos;
+                        AGV_startup.X = int.TryParse(AGV_load.Rows[i]["X_POS"]?.ToString(), out xPos) ? xPos : 0;
+                        AGV_startup.Y = int.TryParse(AGV_load.Rows[i]["Y_POS"]?.ToString(), out yPos) ? yPos : 0;
+                        
+                        AGV_startup.ALARM = AGV_load.Rows[i]["ALARM"]?.ToString() ?? "NOALARM";
+                        AGV_startup.CONNECTSTATE = AGV_load.Rows[i]["CONNECTIONSTATE"]?.ToString() ?? "DISCONNECTED";
+                        AGV_startup.RUNSTATE = AGV_load.Rows[i]["RUNSTATE"]?.ToString() ?? "IDLE";
+                        
+                        // Thông tin transport command
+                        AGV_startup.TransportCommand = AGV_load.Rows[i]["TRANSPORTCOMMANDID"]?.ToString() ?? "";
+                        AGV_startup.Direction = AGV_load.Rows[i]["Direction"]?.ToString() ?? "";
+                        AGV_startup.Dest = AGV_load.Rows[i]["DESTNODEID"]?.ToString() ?? "";
+                        AGV_startup.Path = AGV_load.Rows[i]["PATH"]?.ToString() ?? "";
 
-                    lstAGV.Add(AGV_startup);
-                    //txb_link.Text = node.ID;
+                        // Chỉ thêm AGV có ID hợp lệ
+                        if (!string.IsNullOrEmpty(AGV_startup.ID))
+                        {
+                            lstAGV.Add(AGV_startup);
+                        }
+                    }
+                    catch (Exception rowEx)
+                    {
+                        // Log lỗi cho từng row nhưng tiếp tục xử lý các row khác
+                        System.Diagnostics.Debug.WriteLine($"Lỗi khi xử lý AGV row {i}: {rowEx.Message}");
+                    }
                 }
-                this.Dispatcher.Invoke(() =>
+
+                // Chỉ update UI nếu có dữ liệu
+                if (lstAGV.Count > 0)
                 {
-                    Add_AGV();
-                });
+                    this.Dispatcher.Invoke(() =>
+                    {
+                        Add_AGV();
+                    });
+                }
             }
-            catch (Exception ee)
+            catch (Exception ex)
             {
-
-                //MessageBox.Show(ee.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                System.Diagnostics.Debug.WriteLine($"Lỗi khi load AGV: {ex.Message}");
+                // Có thể thêm notification cho user ở đây
             }
-
         }
 
         /// <summary>
@@ -1531,6 +1592,7 @@ namespace RobotControlSystem
         {
             Grid_Map.Visibility = Visibility.Hidden;
             Grid_Vision.Visibility = Visibility.Hidden;
+            Grid_Robot.Visibility = Visibility.Hidden;
             Grid_CommandHistory.Visibility = Visibility.Visible;
             Grid_CurrentCommand.Visibility = Visibility.Hidden;
             LoadHistoryTransportCommand();
@@ -1547,6 +1609,7 @@ namespace RobotControlSystem
             Grid_Vision.Visibility = Visibility.Hidden;
             Grid_CommandHistory.Visibility = Visibility.Hidden;
             Grid_CurrentCommand.Visibility = Visibility.Visible;
+            Grid_Robot.Visibility = Visibility.Hidden;
             LoadCurentTransportCommand();
         }
 
@@ -1601,6 +1664,7 @@ namespace RobotControlSystem
             Grid_Map.Visibility = Visibility.Hidden;
             Grid_CommandHistory.Visibility = Visibility.Hidden;
             Grid_CurrentCommand.Visibility = Visibility.Hidden;
+            Grid_Robot.Visibility = Visibility.Hidden;
         }
 
         private void btnReport_Click(object sender, RoutedEventArgs e)
@@ -1680,16 +1744,40 @@ namespace RobotControlSystem
             Grid_Map.Visibility = Visibility.Visible;
             Grid_CommandHistory.Visibility = Visibility.Hidden;
             Grid_CurrentCommand.Visibility = Visibility.Hidden;
+            Grid_Robot.Visibility = Visibility.Hidden;
         }
 
         private void btn_Pass_Click(object sender, RoutedEventArgs e)
         {
+            lblImageStatus.Content = "OK";
+            lblImageStatus.Foreground = System.Windows.Media.Brushes.Green;
+            detectResult = true; // Đánh dấu là đã nhận dạng thành công
 
+            RobotAutoControl(detectResult);
         }
 
         private void btn_Fail_Click(object sender, RoutedEventArgs e)
         {
+            lblImageStatus.Content = "NG";
+            lblImageStatus.Foreground = System.Windows.Media.Brushes.Red;
+            detectResult = false; // Đánh dấu là nhận dạng thất bại
+            RobotAutoControl(detectResult);
+        }
 
+        /// <summary>
+        /// Điều khiển cảnh tay robot đi lấy hàng để cất đi
+        /// </summary>
+        /// <param name="detectResult"></param>
+        private void RobotAutoControl(bool detectResult)
+        {
+            if(detectResult)
+            { 
+            
+            }
+            else
+            {
+
+            }
         }
 
         private void btn_Train_Click(object sender, RoutedEventArgs e)
@@ -1857,6 +1945,17 @@ namespace RobotControlSystem
         {
 
         }
+
+        private void btnRobot_Click(object sender, RoutedEventArgs e)
+        {
+
+            Grid_Robot.Visibility = Visibility.Visible;
+            Grid_Map.Visibility = Visibility.Hidden;
+            Grid_Vision.Visibility = Visibility.Hidden;
+            Grid_CommandHistory.Visibility = Visibility.Hidden;
+            Grid_CurrentCommand.Visibility = Visibility.Hidden;
+        }
+
 
         private void btnAddCommand_Click(object sender, RoutedEventArgs e)
         {
