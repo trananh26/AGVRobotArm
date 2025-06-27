@@ -21,3 +21,15 @@
 /RobotControlSystem/bin/Debug/System.Buffers.dll
 /RobotControlSystem/bin/Debug/System.Memory.dll
 /RobotControlSystem/bin/Debug/System.Runtime.CompilerServices.Unsafe.dll
+/ACS.BL/bin/Debug/ACS.BL.pdb
+*.dll
+/ACS.BL/bin/Debug/ACS.Common.dll
+/ACS.BL/bin/Debug/ACS.Common.pdb
+/ACS.BL/bin/Debug/ACS.DL.dll
+/ACS.BL/bin/Debug/ACS.DL.pdb
+/RobotControlSystem/bin/Debug/ACS.BL.dll
+/RobotControlSystem/bin/Debug/ACS.BL.pdb
+/RobotControlSystem/bin/Debug/ACS.Common.dll
+/RobotControlSystem/bin/Debug/ACS.Common.pdb
+/RobotControlSystem/bin/Debug/ACS.DL.dll
+/RobotControlSystem/bin/Debug/ACS.DL.pdb

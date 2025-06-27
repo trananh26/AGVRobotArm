@@ -36,6 +36,7 @@ using static System.Net.Mime.MediaTypeNames;
 using System.Runtime.InteropServices;
 using ActUtlTypeLib;
 using System.Net.NetworkInformation;
+using Org.BouncyCastle.Ocsp;
 
 namespace RobotControlSystem
 {
@@ -94,7 +95,21 @@ namespace RobotControlSystem
         private const int RETRY_DELAY_MS = 1000;
         private const string TRAINING_HISTORY_FILE = "training_history.json";
         private string templateFolder = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TemplateData");
+
         private bool detectResult = true; // Biến này để kiểm tra kết quả phát hiện đối tượng
+
+        private string bt1 = "M2100";
+        private string bt2_OK = "M2201";
+        private string bt2_NG = "M2202";
+        private string bt4_OK = "M2401";
+        private string bt4_NG = "M2402";
+
+        private int s_bt1;
+        private int s_bt2_OK;
+        private int s_bt2_NG;
+        private int s_bt4_OK;
+        private int s_bt4_NG;
+
         private ActUtlType PLC = new ActUtlType();
         private string IPCamera = "192.168.3.150";
         private string IP_PLC = "192.168.3.250";
@@ -165,7 +180,7 @@ namespace RobotControlSystem
             }
         }
 
-       
+
         /// <summary>
         /// Auto Reconnect
         /// </summary>
@@ -234,14 +249,50 @@ namespace RobotControlSystem
         private void GetPLCParam()
         {
             //Kiểm tra trạng thái băng tải 1
+            PLC.GetDevice(bt1, out s_bt1);
+            if (s_bt1 == 1 && detectResult)
+            {
+                //gọi arm đi lấy hàng
 
+                //check vị trí cần tới cho arm khi ok
+
+                //gọi arm đi trả hàng
+            }
+            else if (s_bt1 == 1 && !detectResult)
+            {
+                //gọi arm đi lấy hàng
+
+                //check vị trí cần tới cho arm khi fail
+
+                //gọi arm đi trả hàng
+            }
             //Kiểm tra trạng thái băng tải 2 OK
+            PLC.GetDevice(bt2_OK, out s_bt2_OK);
 
             //Kiểm tra trạng thái băng tải 2 NG
+            PLC.GetDevice(bt2_NG, out s_bt2_NG);
 
-            //Kiểm tra trạng thái băng tải 3 OK
-
-            //Kiểm tra trạng thái băng tải 3 NG
+            //Kiểm tra trạng thái băng tải 4 OK
+            PLC.GetDevice(bt4_OK, out s_bt4_OK);
+            if (s_bt4_OK == 1)
+            {
+                BLTransportCommand.UpdateEqiupmentState("B1_CNV01_OP01", "FULL");
+            }
+            else if (s_bt4_OK == 0)
+            {
+                BLTransportCommand.UpdateEqiupmentState("B1_CNV01_OP01", "EMPTY");
+            }
+            //Kiểm tra trạng thái băng tải 4 NG
+            PLC.GetDevice(bt4_NG, out s_bt4_NG);
+            if (s_bt4_NG == 1)
+            {
+                BLTransportCommand.UpdateEqiupmentState("B1STK01_MC02", "FULL");
+            }
+            else if (s_bt4_NG == 0)
+            {
+                BLTransportCommand.UpdateEqiupmentState("B1STK01_MC02", "EMPTY");
+            }
+            //_eq.ID == "B1STK01_MC02" || _eq.ID == "B1_CNV01_OP01"
         }
 
 
@@ -393,16 +444,16 @@ namespace RobotControlSystem
                 //nếu AGV đang thực hiện lệnh
                 if (_agv.ID == IDAGV && !string.IsNullOrEmpty(_agv.TransportCommand) && runStop == "0")
                 {
-                    //Nếu đích là 3 OK
+                    //Nếu đích là 4 OK
                     if (_agv.NODE == InputPoint)
                     {
-                       
+                        //điều khiển băng tải quay
                     }
 
-                    //Nếu đích là 3 NG
+                    //Nếu đích là 4 NG
                     if (_agv.NODE == OutputPoint)
                     {
-                        
+                        // điều khiển băng tải quay
                     }
                 }
             }
@@ -487,7 +538,7 @@ namespace RobotControlSystem
 
             }
         }
-       
+
         /// <summary>
         /// Tạo yêu cầu điều hướng AGV
         /// </summary>
@@ -779,7 +830,7 @@ namespace RobotControlSystem
                     try
                     {
                         AGV AGV_startup = new AGV();
-                        
+
                         // Sử dụng safe conversion với default values
                         AGV_startup.ID = AGV_load.Rows[i]["AGVID"]?.ToString() ?? "";
                         AGV_startup.BAYID = AGV_load.Rows[i]["BAYID"]?.ToString() ?? "";
@@ -787,16 +838,16 @@ namespace RobotControlSystem
                         AGV_startup.STATUS = AGV_load.Rows[i]["RUNSTATE"]?.ToString() ?? "IDLE";
                         AGV_startup.BATTERY = 100; // Default battery level
                         AGV_startup.NODE = AGV_load.Rows[i]["CURRENTTAG"]?.ToString() ?? "";
-                        
+
                         // Safe conversion cho tọa độ X, Y
                         int xPos, yPos;
                         AGV_startup.X = int.TryParse(AGV_load.Rows[i]["X_POS"]?.ToString(), out xPos) ? xPos : 0;
                         AGV_startup.Y = int.TryParse(AGV_load.Rows[i]["Y_POS"]?.ToString(), out yPos) ? yPos : 0;
-                        
+
                         AGV_startup.ALARM = AGV_load.Rows[i]["ALARM"]?.ToString() ?? "NOALARM";
                         AGV_startup.CONNECTSTATE = AGV_load.Rows[i]["CONNECTIONSTATE"]?.ToString() ?? "DISCONNECTED";
                         AGV_startup.RUNSTATE = AGV_load.Rows[i]["RUNSTATE"]?.ToString() ?? "IDLE";
-                        
+
                         // Thông tin transport command
                         AGV_startup.TransportCommand = AGV_load.Rows[i]["TRANSPORTCOMMANDID"]?.ToString() ?? "";
                         AGV_startup.Direction = AGV_load.Rows[i]["Direction"]?.ToString() ?? "";
@@ -1548,7 +1599,7 @@ namespace RobotControlSystem
 
         }
 
-     
+
         /// <summary>
         /// Nhận dữ liệu AGV
         /// </summary>
@@ -1770,9 +1821,9 @@ namespace RobotControlSystem
         /// <param name="detectResult"></param>
         private void RobotAutoControl(bool detectResult)
         {
-            if(detectResult)
-            { 
-            
+            if (detectResult)
+            {
+
             }
             else
             {

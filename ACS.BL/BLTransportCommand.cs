@@ -77,5 +77,11 @@ namespace ACS.BL
             string cmd = "Update Eqiupment Set State = @State Where BayID = 'MECA20241'";
             DLTransportCommand.UpdateOutputState(cmd, State);
         }
+
+        public static void UpdateEqiupmentState(string Eqiupment, string State)
+        {
+            string cmd = "Update Eqiupment Set State = @State Where Eqiupment= @Eqiupment AND BayID = 'MECA20241'";
+            DLTransportCommand.UpdateEqiupmentState(cmd, Eqiupment, State);
+        }
     }
 }

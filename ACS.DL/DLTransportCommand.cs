@@ -175,5 +175,27 @@ namespace ACS.DL
                 throw;
             }
         }
+
+        public static void UpdateEqiupmentState(string query, string eqiupmentID, string state)
+        {
+            try
+            {
+                if (conn.State == ConnectionState.Closed)
+                {
+                    conn.Open();
+                }
+                SqlCommand cmd = new SqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("@State", state);
+                cmd.Parameters.AddWithValue("@State", eqiupmentID);
+                cmd.ExecuteNonQuery();
+                conn.Close();
+
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
     }
 }
