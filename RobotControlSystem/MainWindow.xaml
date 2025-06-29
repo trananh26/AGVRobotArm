@@ -426,7 +426,7 @@
                     <Rectangle Width="1" HorizontalAlignment="Left"/>
 
                     <StackPanel Name="map"  >
-                        <Canvas x:Name="cvs_Map" Margin="20,-55,0,0"
+                        <Canvas x:Name="cvs_Map" Margin="20,10,0,0"
                              RenderTransformOrigin="0.5,0.5">
                             <Canvas.RenderTransform>
                                 <MatrixTransform x:Name="mt"/>

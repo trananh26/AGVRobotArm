@@ -43,8 +43,15 @@ namespace RobotControlSystem
             if (!System.IO.Directory.Exists(templateFolder)) System.IO.Directory.CreateDirectory(templateFolder);
             if (sourceImage != null)
             {
-                imgTraining.Source = sourceImage;
+                if (sourceImage is BitmapSource bmpSrc)
+                    imgTraining.Source = bmpSrc.Clone();
+                else
+                    imgTraining.Source = sourceImage;
             }
+            //else
+            //{
+            //    MessageBox.Show("sourceImage NULL! Không có ảnh để huấn luyện.", "Debug");
+            //}
             UpdateTemplateList();
         }
 

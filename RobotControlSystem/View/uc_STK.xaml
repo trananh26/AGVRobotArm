@@ -6,8 +6,11 @@
              xmlns:local="clr-namespace:RobotControlSystem.View"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid Background="#01CC00">
+    <Grid Background="#E7EAF1">
         <TextBlock Text="SMART WAREHOUSE" VerticalAlignment="Center" HorizontalAlignment="Center"
                    FontSize="40" FontFamily="Times New Roman" Foreground="#8D3637" FontWeight="Bold"/>
+    
+    <Image Source="/RobotControlSystem;component/Resources/AOIMAchine.png" 
+           HorizontalAlignment="Center" VerticalAlignment="Center" />
     </Grid>
 </UserControl>

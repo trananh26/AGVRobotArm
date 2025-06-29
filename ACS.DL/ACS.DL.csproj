@@ -44,6 +44,7 @@
     <Compile Include="DLControlAGV.cs" />
     <Compile Include="DLLayout.cs" />
     <Compile Include="DLReport.cs" />
+    <Compile Include="DLRobotArmControl.cs" />
     <Compile Include="DLTransportCommand.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

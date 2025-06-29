@@ -186,7 +186,7 @@ namespace ACS.DL
                 }
                 SqlCommand cmd = new SqlCommand(query, conn);
                 cmd.Parameters.AddWithValue("@State", state);
-                cmd.Parameters.AddWithValue("@State", eqiupmentID);
+                cmd.Parameters.AddWithValue("@Eqiupment", eqiupmentID);
                 cmd.ExecuteNonQuery();
                 conn.Close();
 

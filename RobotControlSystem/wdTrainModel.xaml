@@ -25,6 +25,7 @@
                 <ComboBox x:Name="cboComponentType" Width="150" Margin="5">
                     <ComboBoxItem Content="Mosfet 1"/>
                     <ComboBoxItem Content="Mosfet 2"/>
+                    <ComboBoxItem Content="STM32"/>
                     <ComboBoxItem Content="Điện trở"/>
                     <ComboBoxItem Content="Cầu chì"/>
                 </ComboBox>

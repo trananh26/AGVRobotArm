@@ -1,21 +1,30 @@
-# Active Context: Performance Analysis
+# Active Context: ROI Implementation for Image Processing
 
 ## Mục tiêu hiện tại
-Phân tích và tối ưu hóa performance của hệ thống AGV Robot Arm
+Đã hoàn thành việc thêm tính năng ROI (Region of Interest) cho hệ thống xử lý ảnh
 
-## Phân tích đã thực hiện
-- Đã xem xét MainWindow.xaml.cs (1874 dòng)
-- Đã phân tích BL và DL layers
-- Đã kiểm tra cấu trúc project và dependencies
+## Tính năng ROI đã triển khai
+- ✅ Tạo ROISelector UserControl với khả năng chọn vùng bằng chuột
+- ✅ Tích hợp ROISelector vào MainWindow thay thế Image đơn giản
+- ✅ Thêm xử lý sự kiện ROI được chọn
+- ✅ Cập nhật DetectComponents để hỗ trợ ROI
+- ✅ Thêm button "Xóa ROI" để reset vùng chọn
+- ✅ Cải thiện UX với thông tin ROI và phím tắt ESC
 
-## Các vấn đề performance đã phát hiện
-1. **Database Connection Management**: Sử dụng static connection không an toàn
-2. **Timer Intervals**: Nhiều timer chạy đồng thời với interval ngắn
-3. **Memory Allocation**: Arrays với kích thước cố định lớn (10000)
-4. **Image Processing**: Xử lý ảnh real-time có thể gây lag
-5. **UI Thread Blocking**: Các operation nặng chạy trên UI thread
+## Các tính năng chính của ROI
+1. **Chọn vùng bằng chuột**: Kéo thả để chọn vùng ROI
+2. **Hiển thị thông tin**: Hiển thị kích thước vùng đã chọn
+3. **Phím tắt**: ESC để hủy chọn ROI
+4. **Tự động nhận dạng**: Khi chọn ROI, tự động thực hiện nhận dạng
+5. **Điều chỉnh tọa độ**: Tự động điều chỉnh tọa độ về ảnh gốc
+6. **Lưu ảnh ROI**: Có thể lưu ảnh đã cắt theo ROI
+
+## Cải tiến performance
+- Tối ưu hóa xử lý ảnh chỉ trên vùng ROI thay vì toàn bộ ảnh
+- Giảm thời gian nhận dạng khi ảnh lớn
+- Cải thiện độ chính xác bằng cách tập trung vào vùng quan tâm
 
 ## Tiếp theo
-- Tạo báo cáo chi tiết về các vấn đề performance
-- Đề xuất giải pháp tối ưu hóa
-- Cập nhật Memory Bank với findings 
+- ⏳ Thêm tính năng chụp ảnh từ camera
+- ⏳ Cải thiện giao diện người dùng
+- ⏳ Thêm các preset ROI cho các loại sản phẩm khác nhau 

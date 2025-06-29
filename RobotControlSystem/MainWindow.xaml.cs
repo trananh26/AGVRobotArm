@@ -69,10 +69,8 @@ namespace RobotControlSystem
             instanced = this;
         }
 
-        private SerialPort SWMPort = new SerialPort();
-        private SerialPort Arduino1 = new SerialPort();
-        private SerialPort Arduino = new SerialPort();
-        private SerialPort STM = new SerialPort();
+        private SerialPort Robot = new SerialPort();
+        private SerialPort AGV = new SerialPort();
         private uc_STK _stk = new uc_STK();
         private List<Node> lstNode = new List<Node>();
         private List<Link> lstLink = new List<Link>();
@@ -82,9 +80,7 @@ namespace RobotControlSystem
         private DataTable dtMaps = new DataTable();
         private List<CurrentTransportCommand> lstCurrentJob = new List<CurrentTransportCommand>();
         private List<Eqiupment> lstEqiupment = new List<Eqiupment>();
-        private string WaitPoint = "9999";
-        private string InputPoint = "4102";
-        private string OutputPoint = "6102";
+
         private string _deleteJobID, _jobState;
         private DateTime _deleteJobCreateTime;
         private BLTransportCommand oBLTrans = new BLTransportCommand();
@@ -96,13 +92,29 @@ namespace RobotControlSystem
         private const string TRAINING_HISTORY_FILE = "training_history.json";
         private string templateFolder = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TemplateData");
 
-        private bool detectResult = true; // Biến này để kiểm tra kết quả phát hiện đối tượng
+        private string WaitPoint = "9999";
+        private string Output_OK_Point = "4106";
+        private string Output_NG_Point = "5106";
+        private string Arm_TransferDest = "";
 
-        private string bt1 = "M2100";
+        private bool detectResult = true; // Biến này để kiểm tra kết quả phát hiện đối tượng
+        private bool RobotArm_isReady = true;
+        private bool isTransfer_OKMaterial = true;
+        
+
+        // Thêm biến để lưu trữ ảnh gốc
+        private ImageSource originalImage = null;
+
+        private string bt1 = "M2100";   //báo hàng tại vị trí chờ gắp
         private string bt2_OK = "M2201";
         private string bt2_NG = "M2202";
         private string bt4_OK = "M2401";
         private string bt4_NG = "M2402";
+        private string bt4_OK_RUN = "M2501";
+        private string bt4_NG_RUN = "M2502";
+        private string bt1_RUN = "M2505";
+        private string OK_FullTray = "M2601";
+        private string NG_FullTray = "M2602";
 
         private int s_bt1;
         private int s_bt2_OK;
@@ -164,14 +176,14 @@ namespace RobotControlSystem
                 CountCommand();
 
                 //_stk.Background = Brushes.LightGreen;
-                //_stk.Height = 250;
-                //_stk.Width = 820;
-                //Canvas.SetLeft(_stk, 340);
-                //Canvas.SetTop(_stk, 295);
-                //cvs_Map.Children.Add(_stk);
+                _stk.Height = 250;
+                _stk.Width = 820;
+                Canvas.SetLeft(_stk, 340);
+                Canvas.SetTop(_stk, 295);
+                cvs_Map.Children.Add(_stk);
                 CallAGVStartUp();
 
-                ConnectPLC();
+                //ConnectPLC();
             }
             catch (Exception ee)
             {
@@ -188,20 +200,29 @@ namespace RobotControlSystem
         /// <param name="e"></param>
         private void Timer_CheckConnection_Tick(object sender, EventArgs e)
         {
-            if (PingPLC())
-            {
-                GetPLCParam();
-            }
-            if (!Arduino.IsOpen)
+            //if (PingPLC())
+            //{
+            //    GetPLCParam();
+            //}
+            if (!AGV.IsOpen)
             {
 
-                Arduino.PortName = clsFileIO.ReadValue("COM_ARDUINO");
-                Arduino.BaudRate = int.Parse(clsFileIO.ReadValue("BAURATE"));
-                Arduino.Open();
+                AGV.PortName = clsFileIO.ReadValue("COM_AGV");
+                AGV.BaudRate = int.Parse(clsFileIO.ReadValue("BAURATE_AGV"));
+                AGV.Open();
 
-                Arduino.DataReceived += Arduino_DataReceived;
+                AGV.DataReceived += Arduino_DataReceived;
             }
+            if (!Robot.IsOpen)
+            {
+                Robot.PortName = clsFileIO.ReadValue("COM_ROBOT");
+                Robot.BaudRate = int.Parse(clsFileIO.ReadValue("BAURATE_ROBOT"));
+                Robot.Open();
+                Robot.DataReceived += Robot_DataReceived;
+            }
+
         }
+
 
         private void ConnectPLC()
         {
@@ -250,22 +271,12 @@ namespace RobotControlSystem
         {
             //Kiểm tra trạng thái băng tải 1
             PLC.GetDevice(bt1, out s_bt1);
-            if (s_bt1 == 1 && detectResult)
+            if (s_bt1 == 1 && RobotArm_isReady)
             {
-                //gọi arm đi lấy hàng
-
-                //check vị trí cần tới cho arm khi ok
-
-                //gọi arm đi trả hàng
+                string mess = BLRobotArmControl.GetControlPointByID("IP_Material");
+                SendRobotArmControlCommand(mess);
             }
-            else if (s_bt1 == 1 && !detectResult)
-            {
-                //gọi arm đi lấy hàng
 
-                //check vị trí cần tới cho arm khi fail
-
-                //gọi arm đi trả hàng
-            }
             //Kiểm tra trạng thái băng tải 2 OK
             PLC.GetDevice(bt2_OK, out s_bt2_OK);
 
@@ -286,15 +297,94 @@ namespace RobotControlSystem
             PLC.GetDevice(bt4_NG, out s_bt4_NG);
             if (s_bt4_NG == 1)
             {
-                BLTransportCommand.UpdateEqiupmentState("B1STK01_MC02", "FULL");
+                BLTransportCommand.UpdateEqiupmentState("B1_CNV01_OP02", "FULL");
             }
             else if (s_bt4_NG == 0)
             {
-                BLTransportCommand.UpdateEqiupmentState("B1STK01_MC02", "EMPTY");
+                BLTransportCommand.UpdateEqiupmentState("B1_CNV01_OP02", "EMPTY");
             }
             //_eq.ID == "B1STK01_MC02" || _eq.ID == "B1_CNV01_OP01"
         }
 
+        private void SendRobotArmControlCommand(string mess)
+        {
+            Robot.Write(mess);
+        }
+
+        /// <summary>
+        /// Xử lý dữ liệu nhận từ Robot
+        /// </summary>
+        /// <param name="data"></param>
+        private void RobotDataAnalys(string data)
+        {
+            //Báo arm đã sẵn sàng ở vị trí home
+            if (data.Contains("A1"))
+            {
+                RobotArm_isReady = true;
+            }
+            //Báo arm đang bận
+            else if (data.Contains("A2"))
+            {
+                RobotArm_isReady = false;
+            }
+            //Báo lấy hàng thành công
+            else if (data.Contains("A3"))
+            {
+                DataTable dt = new DataTable();
+
+                if (!RobotArm_isReady && detectResult)
+                {
+                    dt = BLRobotArmControl.GetControlPointByType("OK");
+                    if (dt.Rows.Count > 0)
+                    {
+                        string mess = dt.Rows[0]["ControlPoint"].ToString();
+                        Arm_TransferDest = dt.Rows[0]["PointID"].ToString();
+                        SendRobotArmControlCommand(mess);                      
+                    }
+
+                }
+                if (!RobotArm_isReady && !detectResult)
+                {
+                    dt = BLRobotArmControl.GetControlPointByType("NG");
+                    if (dt.Rows.Count > 0)
+                    {
+                        string mess = dt.Rows[0]["ControlPoint"].ToString();
+                        Arm_TransferDest = dt.Rows[0]["PointID"].ToString();
+                        SendRobotArmControlCommand(mess);                      
+                    }
+                }
+            }
+            //Báo tra hàng thành công
+            else if (data.Contains("A4"))
+            {
+                //Cập nhật thêm 1 ô hàng OK hoặc NG full OK hoặc NG
+                if (isTransfer_OKMaterial)
+                {
+                    BLRobotArmControl.UpdateTrayState(Arm_TransferDest, "FULL");
+                }
+                else
+                {
+                    BLRobotArmControl.UpdateTrayState(Arm_TransferDest, "FULL");
+                }
+
+
+                //Check xem có cái nào full chưa thì gọi nâng hạ tới
+                if (CheckFullSlotTrayByType("OK"))
+                {
+                    PLC.SetDevice(OK_FullTray, 1); // full 1 slot OK
+                }
+                else if (CheckFullSlotTrayByType("NG"))
+                {
+                    PLC.SetDevice(NG_FullTray, 1); // full 1 slot NG
+                }
+                RobotArm_isReady = true;
+            }
+        }
+
+        private bool CheckFullSlotTrayByType(string Type)
+        {
+            return BLRobotArmControl.CheckFullSlotTrayByType(Type);
+        }
 
         /// <summary>
         /// Load danh sách lệnh đang chạy
@@ -365,6 +455,7 @@ namespace RobotControlSystem
 
         }
 
+        #region Điều khiển AGV theo vị trí và trạng thái
         /// <summary>
         /// Update lại thông tin AGV mỗi lần nhận log
         /// </summary>
@@ -445,19 +536,22 @@ namespace RobotControlSystem
                 if (_agv.ID == IDAGV && !string.IsNullOrEmpty(_agv.TransportCommand) && runStop == "0")
                 {
                     //Nếu đích là 4 OK
-                    if (_agv.NODE == InputPoint)
+                    if (_agv.NODE == Output_OK_Point)
                     {
                         //điều khiển băng tải quay
+                        PLC.SetDevice(bt4_OK_RUN, 1); // Băng tải 4 OK quay
                     }
 
                     //Nếu đích là 4 NG
-                    if (_agv.NODE == OutputPoint)
+                    if (_agv.NODE == Output_NG_Point)
                     {
                         // điều khiển băng tải quay
+                        PLC.SetDevice(bt4_NG_RUN, 1); // Băng tải 4 NG quay
                     }
                 }
             }
         }
+
 
         /// <summary>
         /// Path lại đường đi cho AGV
@@ -1314,7 +1408,7 @@ namespace RobotControlSystem
                         _eq.BayID = dr["BayID"].ToString();
 
 
-                        if ((_eq.ID == "B1STK01_MC02" || _eq.ID == "B1_CNV01_OP01") && _eq.State == "FULL")
+                        if ((_eq.ID == "B1_CNV01_OP02" || _eq.ID == "B1_CNV01_OP01") && _eq.State == "FULL")
                         {
                             CreateTransportCommand(_eq);
                         }
@@ -1349,7 +1443,7 @@ namespace RobotControlSystem
                 {
                     TransportCommand Transport = new TransportCommand();
                     Transport.AGVID = _agv.ID;
-                    Transport.STKID = "STK01_MECA2024";
+                    Transport.STKID = "STK01_MECA2025";
                     Transport.CommandID = DateTime.Now.ToString("ddMMyyyyHHmmss") + "_" + Port_Source + "_" + Port_Dest;
                     Transport.CommandSource = Port_Source;
                     Transport.CommandDest = Port_Dest;
@@ -1437,10 +1531,10 @@ namespace RobotControlSystem
 
                             oBLTrans.UpdateAGVTransport(IDAGV, "");
                             BLControlAGV.UpdateAGVPath(IDAGV, "");
-                            if (Location == InputPoint)
-                            {
-                                BLTransportCommand.UpdateOutputState("EMPTY");
-                            }
+                            //if (Location == InputPoint)
+                            //{
+                            //    BLTransportCommand.UpdateOutputState("EMPTY");
+                            //}
                             BLLayout.UpdateAGVDest(IDAGV, WaitPoint);
                             SendOrderCommand(IDAGV, "AO03" + WaitPoint);
 
@@ -1497,18 +1591,11 @@ namespace RobotControlSystem
         private void CallAGV(string AGVID, string Dest)
         {
             string mess = AGVID + "AC00" + Dest;
-            //Call AGV
-            if (AGVID == "001")
             {
-                STM.Write(mess + "x");
+                AGV.Write(mess + "x");
             }
 
-            else
-            {
-                Arduino.Write(mess + "x");
-            }
-            //Arduino.Write(mess + "x");
-            Arduino1.Write("S :" + mess + "x");
+
             //Update lại dest AGV
             foreach (AGV _agv in lstAGV)
             {
@@ -1531,39 +1618,14 @@ namespace RobotControlSystem
             if (!string.IsNullOrEmpty(Command))
             {
                 string mess = AGVID + Command;
-                if (AGVID == "001")
                 {
-                    STM.Write(mess + "x");
+                    AGV.Write(mess + "x");
                 }
-
-                else
-                {
-                    Arduino.Write(mess + "x");
-                }
-                //Arduino.Write(mess + "x");
-                Arduino1.Write("S " + mess + "x");
             }
         }
 
-        /// <summary>
-        /// Load danh sách lệnh đang chạy và chờ chạy
-        /// </summary>
-        private void LoadCurentTransportCommand()
-        {
-            DataTable dt = new DataTable();
-            dt = oBLTrans.GetQueueCommand();
-            dtgCrCommand.ItemsSource = dt.DefaultView;
-        }
+        #endregion
 
-        /// <summary>
-        /// Load danh sách lịch sử lệnh
-        /// </summary>
-        private void LoadHistoryTransportCommand()
-        {
-            DataTable dt = new DataTable();
-            dt = oBLTrans.GetHistoryTransportCommand();
-            dtgCommandHistory.ItemsSource = dt.DefaultView;
-        }
 
         /// <summary>
         /// Kết nối AGV
@@ -1574,17 +1636,17 @@ namespace RobotControlSystem
             ///Arduino: Xe số 1
             ///STM: Xe số 2
 
-            Arduino.PortName = clsFileIO.ReadValue("COM_ARDUINO");
-            Arduino.BaudRate = int.Parse(clsFileIO.ReadValue("BAURATE"));
-            Arduino.Open();
+            AGV.PortName = clsFileIO.ReadValue("COM_AGV");
+            AGV.BaudRate = int.Parse(clsFileIO.ReadValue("BAURATE_AGV"));
+            AGV.Open();
 
-            Arduino.DataReceived += Arduino_DataReceived;
+            AGV.DataReceived += Arduino_DataReceived;
 
-            //STM.PortName = clsFileIO.ReadValue("COM_STM");
-            //STM.BaudRate = int.Parse(clsFileIO.ReadValue("BAURATE2"));
-            //STM.Open();
+            Robot.PortName = clsFileIO.ReadValue("COM_ROBOT");
+            Robot.BaudRate = int.Parse(clsFileIO.ReadValue("BAURATE_ROBOT"));
+            Robot.Open();
 
-            //STM.DataReceived += STM_DataReceived;
+            Robot.DataReceived += Robot_DataReceived;
 
             //Arduino1.PortName = clsFileIO.ReadValue("COM_ARDUINO1");
             //Arduino1.BaudRate = int.Parse(clsFileIO.ReadValue("BAURATE"));
@@ -1599,6 +1661,38 @@ namespace RobotControlSystem
 
         }
 
+        /// <summary>
+        /// Nhận dữ liệu từ Robot và xử lý
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Robot_DataReceived(object sender, SerialDataReceivedEventArgs e)
+        {
+            try
+            {
+                if (Robot.BytesToRead > 500)
+                {
+                    Robot.DiscardInBuffer();
+                    return;
+                }
+                string data = Robot.ReadTo("x");
+                //Lora_Receive.Enqueue(data);
+
+                this.Dispatcher.Invoke(() =>
+                {
+
+                    data = data.Trim();
+                    RobotDataAnalys(data);
+                });
+
+            }
+            catch (Exception ee)
+            {
+                MessageBox.Show(ee.ToString(), "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+
 
         /// <summary>
         /// Nhận dữ liệu AGV
@@ -1609,18 +1703,16 @@ namespace RobotControlSystem
         {
             try
             {
-                if (Arduino.BytesToRead > 500)
+                if (AGV.BytesToRead > 500)
                 {
-                    Arduino.DiscardInBuffer();
+                    AGV.DiscardInBuffer();
                     return;
                 }
-                string data = Arduino.ReadTo("x");
+                string data = AGV.ReadTo("x");
                 //Lora_Receive.Enqueue(data);
 
                 this.Dispatcher.Invoke(() =>
                 {
-                    //Do something                    
-                    Arduino1.Write("R: " + data + "x");
 
                     data = data.Trim();
                     ArduinoDataAnalys(data);
@@ -1709,6 +1801,26 @@ namespace RobotControlSystem
 
         }
 
+        /// <summary>
+        /// Load danh sách lệnh đang chạy và chờ chạy
+        /// </summary>
+        private void LoadCurentTransportCommand()
+        {
+            DataTable dt = new DataTable();
+            dt = oBLTrans.GetQueueCommand();
+            dtgCrCommand.ItemsSource = dt.DefaultView;
+        }
+
+        /// <summary>
+        /// Load danh sách lịch sử lệnh
+        /// </summary>
+        private void LoadHistoryTransportCommand()
+        {
+            DataTable dt = new DataTable();
+            dt = oBLTrans.GetHistoryTransportCommand();
+            dtgCommandHistory.ItemsSource = dt.DefaultView;
+        }
+
         private void btnDashboard_Click(object sender, RoutedEventArgs e)
         {
             Grid_Vision.Visibility = Visibility.Visible;
@@ -1769,7 +1881,7 @@ namespace RobotControlSystem
         {
             try
             {
-                BLTransportCommand.UpdateOutputState("FULL");
+                // BLTransportCommand.UpdateOutputState("FULL");
             }
             catch (Exception)
             {
@@ -1804,7 +1916,7 @@ namespace RobotControlSystem
             lblImageStatus.Foreground = System.Windows.Media.Brushes.Green;
             detectResult = true; // Đánh dấu là đã nhận dạng thành công
 
-            RobotAutoControl(detectResult);
+            PLC.SetDevice(bt1_RUN, 1);
         }
 
         private void btn_Fail_Click(object sender, RoutedEventArgs e)
@@ -1812,29 +1924,21 @@ namespace RobotControlSystem
             lblImageStatus.Content = "NG";
             lblImageStatus.Foreground = System.Windows.Media.Brushes.Red;
             detectResult = false; // Đánh dấu là nhận dạng thất bại
-            RobotAutoControl(detectResult);
+
+            PLC.SetDevice(bt1_RUN, 1);
         }
 
-        /// <summary>
-        /// Điều khiển cảnh tay robot đi lấy hàng để cất đi
-        /// </summary>
-        /// <param name="detectResult"></param>
-        private void RobotAutoControl(bool detectResult)
-        {
-            if (detectResult)
-            {
 
-            }
-            else
-            {
 
-            }
-        }
 
         private void btn_Train_Click(object sender, RoutedEventArgs e)
         {
             ImageSource sourceImage = null;
-            if (img_InputImage.Source != null)
+            if (originalImage != null)
+            {
+                sourceImage = originalImage;
+            }
+            else if (img_InputImage.Source != null)
             {
                 sourceImage = img_InputImage.Source;
             }
@@ -1869,6 +1973,9 @@ namespace RobotControlSystem
                     bitmap.CacheOption = BitmapCacheOption.OnLoad;
                     bitmap.UriSource = new Uri(openFileDialog.FileName);
                     bitmap.EndInit();
+
+                    // Lưu ảnh gốc trước khi xử lý
+                    originalImage = bitmap;
                     img_InputImage.Source = bitmap;
 
                     // Thực hiện nhận dạng

@@ -1,23 +1,27 @@
-# Progress: Performance Analysis
+# Progress: ROI Implementation
 
 ## Đã hoàn thành
-- ✅ Phân tích cấu trúc dự án
-- ✅ Xem xét MainWindow.xaml.cs
-- ✅ Phân tích Business Logic Layer
-- ✅ Phân tích Data Layer
-- ✅ Kiểm tra dependencies và project configuration
+- ✅ Tạo ROISelector UserControl
+- ✅ Tích hợp ROI vào MainWindow
+- ✅ Thêm xử lý sự kiện ROI selection
+- ✅ Cập nhật DetectComponents cho ROI
+- ✅ Thêm button Clear ROI
+- ✅ Cải thiện UX với thông tin và phím tắt
 
 ## Đang thực hiện
-- 🔄 Tạo báo cáo chi tiết về performance issues
-- 🔄 Đề xuất giải pháp tối ưu hóa
+- 🔄 Testing và validation tính năng ROI
+- 🔄 Documentation cho người dùng
 
 ## Cần làm
-- ⏳ Tạo code examples cho các tối ưu hóa
-- ⏳ Cập nhật .clinerules với performance patterns
-- ⏳ Tạo documentation cho best practices
+- ⏳ Thêm tính năng chụp ảnh từ camera
+- ⏳ Thêm preset ROI cho các loại sản phẩm
+- ⏳ Cải thiện giao diện người dùng
+- ⏳ Tối ưu hóa performance cho ảnh lớn
 
-## Performance Issues đã phát hiện
-1. **Critical**: Database connection management
-2. **High**: Timer intervals và UI blocking
-3. **Medium**: Memory allocation patterns
-4. **Low**: Image processing optimization 
+## Tính năng ROI đã triển khai
+1. **UserControl ROISelector**: Chọn vùng bằng chuột
+2. **Tự động nhận dạng**: Khi chọn ROI
+3. **Điều chỉnh tọa độ**: Về ảnh gốc
+4. **Lưu ảnh ROI**: Có thể lưu vùng đã cắt
+5. **Phím tắt**: ESC để hủy chọn
+6. **Thông tin hiển thị**: Kích thước ROI 
