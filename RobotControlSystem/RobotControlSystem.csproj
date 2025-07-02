@@ -121,6 +121,9 @@
     <Compile Include="View\uc_STK.xaml.cs">
       <DependentUpon>uc_STK.xaml</DependentUpon>
     </Compile>
+    <Compile Include="View\uc_Eqiupment.xaml.cs">
+      <DependentUpon>uc_Eqiupment.xaml</DependentUpon>
+    </Compile>
     <Compile Include="View\uc_Tag.xaml.cs">
       <DependentUpon>uc_Tag.xaml</DependentUpon>
     </Compile>
@@ -159,6 +162,10 @@
     <Page Include="View\uc_STK.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\uc_Eqiupment.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="View\uc_Tag.xaml">
       <SubType>Designer</SubType>

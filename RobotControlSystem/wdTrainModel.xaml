@@ -4,8 +4,8 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:RobotControlSystem"
-        mc:Ignorable="d"
-        Title="Huấn luyện mô hình" Height="600" Width="1300"
+        mc:Ignorable="d"  WindowState="Maximized"
+        Title="Huấn luyện mô hình" Height="700" Width="1400"
         WindowStartupLocation="CenterScreen">
     <Grid>
         <Grid.ColumnDefinitions>
@@ -16,25 +16,60 @@
         <Grid Grid.Column="0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="10">
                 <Button x:Name="btnOpenImage" Content="Mở ảnh" Width="100" Margin="5" Click="btnOpenImage_Click"/>
-                <ComboBox x:Name="cboComponentType" Width="150" Margin="5">
+                <ComboBox x:Name="cboComponentType" Width="150" Margin="5" SelectionChanged="cboComponentType_SelectionChanged">
                     <ComboBoxItem Content="Mosfet 1"/>
                     <ComboBoxItem Content="Mosfet 2"/>
                     <ComboBoxItem Content="STM32"/>
                     <ComboBoxItem Content="Điện trở"/>
                     <ComboBoxItem Content="Cầu chì"/>
                 </ComboBox>
-                <Button x:Name="btnSave" Content="Lưu" Width="100" Margin="5" Click="btnSave_Click"/>
+                <Button x:Name="btnPreview" Content="Xem trước" Width="100" Margin="5" Click="btnPreview_Click" IsEnabled="False"/>
+                <Button x:Name="btnSaveSample" Content="Lưu mẫu" Width="100" Margin="5" Click="btnSaveSample_Click" IsEnabled="False"/>
                 <Button x:Name="btnDeleteSample" Content="Xóa mẫu" Width="100" Margin="5" Click="btnDeleteSample_Click"/>
                 <Button x:Name="btnCancel" Content="Hủy" Width="100" Margin="5" Click="btnCancel_Click"/>
             </StackPanel>
 
-            <Grid Grid.Row="1">
+            <!-- Panel điều chỉnh vị trí ROI -->
+            <Border Grid.Row="1" BorderBrush="LightGray" BorderThickness="1" Margin="10,0,10,10" Padding="10" Background="#F5F5F5">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="Điều chỉnh vị trí ROI" FontWeight="Bold" Margin="0,0,0,10"/>
+                    <StackPanel Grid.Row="1" Orientation="Horizontal">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,20,0">
+                            <TextBlock Text="Bước nhảy:" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                            <TextBox x:Name="txtStepPixel" Width="40" Height="25" Text="1" TextAlignment="Center" Margin="0,0,10,0"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,20,0">
+                            <TextBlock Text="X:" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                            <Button x:Name="btnDecreaseX" Content="-" Width="30" Height="25" Click="btnDecreaseX_Click"/>
+                            <TextBox x:Name="txtRegionX" Width="60" Height="25" Margin="5,0" Text="0" TextAlignment="Center" IsReadOnly="True"/>
+                            <Button x:Name="btnIncreaseX" Content="+" Width="30" Height="25" Click="btnIncreaseX_Click"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,20,0">
+                            <TextBlock Text="Y:" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                            <Button x:Name="btnDecreaseY" Content="-" Width="30" Height="25" Click="btnDecreaseY_Click"/>
+                            <TextBox x:Name="txtRegionY" Width="60" Height="25" Margin="5,0" Text="0" TextAlignment="Center" IsReadOnly="True"/>
+                            <Button x:Name="btnIncreaseY" Content="UP" Width="30" Height="25" Click="btnIncreaseY_Click"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="Kích thước:" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                            <TextBlock x:Name="txtRegionSize" Text="0 x 0" VerticalAlignment="Center" FontWeight="Bold"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <Grid Grid.Row="2">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
@@ -58,7 +93,7 @@
                 </Border>
             </Grid>
 
-            <StatusBar Grid.Row="2">
+            <StatusBar Grid.Row="3">
                 <StatusBarItem>
                     <TextBlock x:Name="txtStatus" Text="Sẵn sàng"/>
                 </StatusBarItem>

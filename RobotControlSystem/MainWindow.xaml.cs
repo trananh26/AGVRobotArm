@@ -77,6 +77,7 @@ namespace RobotControlSystem
         private List<AGV> lstAGV = new List<AGV>();
         private AGV_Slim[] AGV_Slim = new AGV_Slim[10000];
         private uc_Tag[] uc_Tag = new uc_Tag[10000];
+        private uc_Eqiupment[] uc_Eqiupment = new uc_Eqiupment[10000];
         private DataTable dtMaps = new DataTable();
         private List<CurrentTransportCommand> lstCurrentJob = new List<CurrentTransportCommand>();
         private List<Eqiupment> lstEqiupment = new List<Eqiupment>();
@@ -100,7 +101,7 @@ namespace RobotControlSystem
         private bool detectResult = true; // Biến này để kiểm tra kết quả phát hiện đối tượng
         private bool RobotArm_isReady = true;
         private bool isTransfer_OKMaterial = true;
-        
+
 
         // Thêm biến để lưu trữ ảnh gốc
         private ImageSource originalImage = null;
@@ -176,10 +177,10 @@ namespace RobotControlSystem
                 CountCommand();
 
                 //_stk.Background = Brushes.LightGreen;
-                _stk.Height = 250;
+                _stk.Height = 360;
                 _stk.Width = 820;
                 Canvas.SetLeft(_stk, 340);
-                Canvas.SetTop(_stk, 295);
+                Canvas.SetTop(_stk, 175);
                 cvs_Map.Children.Add(_stk);
                 CallAGVStartUp();
 
@@ -339,7 +340,7 @@ namespace RobotControlSystem
                     {
                         string mess = dt.Rows[0]["ControlPoint"].ToString();
                         Arm_TransferDest = dt.Rows[0]["PointID"].ToString();
-                        SendRobotArmControlCommand(mess);                      
+                        SendRobotArmControlCommand(mess);
                     }
 
                 }
@@ -350,7 +351,7 @@ namespace RobotControlSystem
                     {
                         string mess = dt.Rows[0]["ControlPoint"].ToString();
                         Arm_TransferDest = dt.Rows[0]["PointID"].ToString();
-                        SendRobotArmControlCommand(mess);                      
+                        SendRobotArmControlCommand(mess);
                     }
                 }
             }
@@ -1281,36 +1282,60 @@ namespace RobotControlSystem
                 {
                     int Node_ID = 0;
                     int.TryParse(node.ID.ToString(), out Node_ID);
-                    uc_Tag[Node_ID] = new uc_Tag();
-                    uc_Tag[Node_ID].Height = 6;
-                    uc_Tag[Node_ID].Width = 6;
 
-                    switch (node.Direction)
+                    if (node.TYPE == "COMMON")
                     {
-                        case "L":
-                            uc_Tag[Node_ID].rotation_tag.Angle = 180;
-                            break;
-                        case "R":
-                            uc_Tag[Node_ID].rotation_tag.Angle = 0;
-                            break;
-                        case "B":
-                            uc_Tag[Node_ID].rotation_tag.Angle = 90;
-                            break;
-                        case "F":
-                            uc_Tag[Node_ID].rotation_tag.Angle = 270;
-                            break;
+                       
+                        uc_Tag[Node_ID] = new uc_Tag();
+                        uc_Tag[Node_ID].Height = 6;
+                        uc_Tag[Node_ID].Width = 6;
+
+                        switch (node.Direction)
+                        {
+                            case "L":
+                                uc_Tag[Node_ID].rotation_tag.Angle = 180;
+                                break;
+                            case "R":
+                                uc_Tag[Node_ID].rotation_tag.Angle = 0;
+                                break;
+                            case "B":
+                                uc_Tag[Node_ID].rotation_tag.Angle = 90;
+                                break;
+                            case "F":
+                                uc_Tag[Node_ID].rotation_tag.Angle = 270;
+                                break;
+                        }
+
+                        if (Node_ID < 10000)
+                        {
+                            uc_Tag[Node_ID].colorbackgroud = node.TYPE != "COMMON" ? System.Windows.Media.Brushes.Red : System.Windows.Media.Brushes.DimGray;
+                            uc_Tag[Node_ID].ToolTip = string.Format("Node: {0}", node.ID);
+                            ToolTipService.SetShowDuration(uc_Tag[Node_ID], 20000);
+                            Canvas.SetLeft(uc_Tag[Node_ID], node.X - 3);
+                            Canvas.SetTop(uc_Tag[Node_ID], node.Y - 3);
+
+                            cvs_Map.Children.Add(uc_Tag[Node_ID]);
+                            uc_Tag[Node_ID].Visibility = Visibility.Visible;
+                        }
                     }
-
-                    if (Node_ID < 10000)
+                    else
                     {
-                        uc_Tag[Node_ID].colorbackgroud = node.TYPE != "COMMON" ? System.Windows.Media.Brushes.Red : System.Windows.Media.Brushes.DimGray;
-                        uc_Tag[Node_ID].ToolTip = string.Format("Node: {0}", node.ID);
-                        ToolTipService.SetShowDuration(uc_Tag[Node_ID], 20000);
-                        Canvas.SetLeft(uc_Tag[Node_ID], node.X - 3);
-                        Canvas.SetTop(uc_Tag[Node_ID], node.Y - 3);
+                        uc_Eqiupment[Node_ID] = new uc_Eqiupment();
+                        uc_Eqiupment[Node_ID].Height = 10;
+                        uc_Eqiupment[Node_ID].Width = 10;
 
-                        cvs_Map.Children.Add(uc_Tag[Node_ID]);
-                        uc_Tag[Node_ID].Visibility = Visibility.Visible;
+
+                        if (Node_ID < 10000)
+                        {
+                            uc_Eqiupment[Node_ID].colorbackgroud = node.TYPE != "COMMON" ? System.Windows.Media.Brushes.Red : System.Windows.Media.Brushes.DimGray;
+                            uc_Eqiupment[Node_ID].ToolTip = string.Format("Node: {0}", node.ID);
+                            ToolTipService.SetShowDuration(uc_Eqiupment[Node_ID], 20000);
+                            Canvas.SetLeft(uc_Eqiupment[Node_ID], node.X - 5);
+                            Canvas.SetTop(uc_Eqiupment[Node_ID], node.Y - 5);
+
+                            cvs_Map.Children.Add(uc_Eqiupment[Node_ID]);
+                            uc_Eqiupment[Node_ID].Visibility = Visibility.Visible;
+                        }
                     }
                 }
             }

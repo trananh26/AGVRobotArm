@@ -29,6 +29,11 @@ namespace RobotControlSystem
         private bool isSelecting = false;
         private List<SampleInfo> sampleList = new List<SampleInfo>();
         private string templateFolder = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TemplateData");
+        
+        // Thêm biến để lưu trữ vùng ROI hiện tại
+        private Rect currentRegion;
+        private bool hasSelectedRegion = false;
+        private string currentComponentType = "";
 
         public class SampleInfo
         {
@@ -53,6 +58,7 @@ namespace RobotControlSystem
             //    MessageBox.Show("sourceImage NULL! Không có ảnh để huấn luyện.", "Debug");
             //}
             UpdateTemplateList();
+            UpdateAdjustmentControls();
         }
 
         private System.Drawing.Bitmap ConvertBitmapSourceToBitmap(BitmapSource bitmapSource)
@@ -117,8 +123,15 @@ namespace RobotControlSystem
                     bitmap.EndInit();
                     imgTraining.Source = bitmap;
                     selectionRect.Visibility = Visibility.Collapsed;
+                    
+                    // Reset trạng thái khi mở ảnh mới
+                    hasSelectedRegion = false;
+                    currentComponentType = "";
+                    imgSelectedSample.Source = null;
+                    
                     UpdateStatus();
                     UpdateTemplateList();
+                    UpdateAdjustmentControls();
                 }
                 catch (Exception ex)
                 {
@@ -174,33 +187,38 @@ namespace RobotControlSystem
             if (!isSelecting) return;
             isSelecting = false;
             System.Windows.Point endPoint = GetImageCoordinates(e.GetPosition(imageContainer));
-            Rect selectedRegion = new Rect(
+            currentRegion = new Rect(
                 Math.Min(startPoint.X, endPoint.X),
                 Math.Min(startPoint.Y, endPoint.Y),
                 Math.Abs(endPoint.X - startPoint.X),
                 Math.Abs(endPoint.Y - startPoint.Y)
             );
-            if (selectedRegion.Width > 10 && selectedRegion.Height > 10)
+            
+            if (currentRegion.Width > 10 && currentRegion.Height > 10)
             {
                 var selectedItem = cboComponentType.SelectedItem as ComboBoxItem;
                 if (selectedItem != null)
                 {
-                    string label = selectedItem.Content.ToString();
-                    string fileName = $"{label}_{DateTime.Now:yyyyMMddHHmmssfff}.png";
-                    string savePath = System.IO.Path.Combine(templateFolder, fileName);
-                    SaveTemplateImage(selectedRegion, savePath);
-                    MessageBox.Show($"Đã lưu template: {fileName}", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
-                    UpdateTemplateList();
+                    currentComponentType = selectedItem.Content.ToString();
+                    hasSelectedRegion = true;
+                    UpdateAdjustmentControls();
+                    UpdateSelectionRect();
                 }
                 else
                 {
                     MessageBox.Show("Vui lòng chọn loại linh kiện trước khi chọn vùng", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
                     selectionRect.Visibility = Visibility.Collapsed;
+                    hasSelectedRegion = false;
+                    currentComponentType = "";
+                    UpdateAdjustmentControls();
                 }
             }
             else
             {
                 selectionRect.Visibility = Visibility.Collapsed;
+                hasSelectedRegion = false;
+                currentComponentType = "";
+                UpdateAdjustmentControls();
             }
             this.PreviewMouseRightButtonUp -= Window_PreviewMouseRightButtonUp;
         }
@@ -212,8 +230,7 @@ namespace RobotControlSystem
                 using (System.Drawing.Bitmap originalBitmap = ConvertBitmapSourceToBitmap(bmpSrc))
                 {
                     System.Drawing.Rectangle cropRect = new System.Drawing.Rectangle(
-                        //Mếu lỗi kích thước train thì thăng giảm ở đây
-                        (int)Math.Max(0, Math.Min(region.X-151, originalBitmap.Width - 1)),
+                        (int)Math.Max(0, Math.Min(region.X, originalBitmap.Width - 1)),
                         (int)Math.Max(0, Math.Min(region.Y, originalBitmap.Height - 1)),
                         (int)Math.Min(region.Width, originalBitmap.Width - (int)Math.Max(0, Math.Min(region.X, originalBitmap.Width - 1))),
                         (int)Math.Min(region.Height, originalBitmap.Height - (int)Math.Max(0, Math.Min(region.Y, originalBitmap.Height - 1)))
@@ -224,7 +241,6 @@ namespace RobotControlSystem
                     using (System.Drawing.Bitmap croppedBitmap = originalBitmap.Clone(cropRect, originalBitmap.PixelFormat))
                     {
                         croppedBitmap.Save(savePath, System.Drawing.Imaging.ImageFormat.Png);
-                        imgSelectedSample.Source = ConvertToBitmapSource(croppedBitmap);
                     }
                 }
             }
@@ -277,6 +293,170 @@ namespace RobotControlSystem
             else
             {
                 MessageBox.Show("Vui lòng chọn loại mẫu muốn xóa trong bảng!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
+        private void UpdateAdjustmentControls()
+        {
+            bool hasRegion = hasSelectedRegion && currentRegion.Width > 10 && currentRegion.Height > 10;
+            btnDecreaseX.IsEnabled = hasRegion;
+            btnIncreaseX.IsEnabled = hasRegion;
+            btnDecreaseY.IsEnabled = hasRegion;
+            btnIncreaseY.IsEnabled = hasRegion;
+            btnPreview.IsEnabled = hasRegion && !string.IsNullOrEmpty(currentComponentType);
+            btnSaveSample.IsEnabled = hasRegion && !string.IsNullOrEmpty(currentComponentType);
+            
+            if (hasRegion)
+            {
+                txtRegionX.Text = ((int)currentRegion.X).ToString();
+                txtRegionY.Text = ((int)currentRegion.Y).ToString();
+                txtRegionSize.Text = $"{(int)currentRegion.Width} x {(int)currentRegion.Height}";
+            }
+            else
+            {
+                txtRegionX.Text = "0";
+                txtRegionY.Text = "0";
+                txtRegionSize.Text = "0 x 0";
+            }
+        }
+
+        private int GetStepPixel()
+        {
+            int step = 1;
+            if (!int.TryParse(txtStepPixel.Text, out step) || step < 1)
+                step = 1;
+            return step;
+        }
+
+        private void btnDecreaseX_Click(object sender, RoutedEventArgs e)
+        {
+            if (hasSelectedRegion)
+            {
+                int step = GetStepPixel();
+                currentRegion.X = Math.Max(0, currentRegion.X - step);
+                UpdateSelectionRect();
+                UpdateAdjustmentControls();
+            }
+        }
+
+        private void btnIncreaseX_Click(object sender, RoutedEventArgs e)
+        {
+            if (hasSelectedRegion && imgTraining.Source != null)
+            {
+                int step = GetStepPixel();
+                double maxX = imgTraining.Source.Width - currentRegion.Width;
+                currentRegion.X = Math.Min(maxX, currentRegion.X + step);
+                UpdateSelectionRect();
+                UpdateAdjustmentControls();
+            }
+        }
+
+        private void btnDecreaseY_Click(object sender, RoutedEventArgs e)
+        {
+            if (hasSelectedRegion)
+            {
+                int step = GetStepPixel();
+                currentRegion.Y = Math.Max(0, currentRegion.Y - step);
+                UpdateSelectionRect();
+                UpdateAdjustmentControls();
+            }
+        }
+
+        private void btnIncreaseY_Click(object sender, RoutedEventArgs e)
+        {
+            if (hasSelectedRegion && imgTraining.Source != null)
+            {
+                int step = GetStepPixel();
+                double maxY = imgTraining.Source.Height - currentRegion.Height;
+                currentRegion.Y = Math.Min(maxY, currentRegion.Y + step);
+                UpdateSelectionRect();
+                UpdateAdjustmentControls();
+            }
+        }
+
+        private void UpdateSelectionRect()
+        {
+            if (!hasSelectedRegion || imgTraining.Source == null) return;
+            
+            double imgW = imgTraining.Source.Width;
+            double imgH = imgTraining.Source.Height;
+            double ctrlW = imgTraining.ActualWidth;
+            double ctrlH = imgTraining.ActualHeight;
+            double ratio = Math.Min(ctrlW / imgW, ctrlH / imgH);
+            double displayW = imgW * ratio;
+            double displayH = imgH * ratio;
+            double offsetX = (ctrlW - displayW) / 2;
+            double offsetY = (ctrlH - displayH) / 2;
+            
+            double rectX = offsetX + currentRegion.X * ratio;
+            double rectY = offsetY + currentRegion.Y * ratio;
+            double rectWidth = currentRegion.Width * ratio;
+            double rectHeight = currentRegion.Height * ratio;
+            
+            selectionRect.Margin = new Thickness(rectX, rectY, 0, 0);
+            selectionRect.Width = rectWidth;
+            selectionRect.Height = rectHeight;
+        }
+
+        private void btnPreview_Click(object sender, RoutedEventArgs e)
+        {
+            if (hasSelectedRegion && !string.IsNullOrEmpty(currentComponentType))
+            {
+                PreviewTemplateImage(currentRegion);
+            }
+        }
+
+        private void btnSaveSample_Click(object sender, RoutedEventArgs e)
+        {
+            if (hasSelectedRegion && !string.IsNullOrEmpty(currentComponentType))
+            {
+                string fileName = $"{currentComponentType}_{DateTime.Now:yyyyMMddHHmmssfff}.png";
+                string savePath = System.IO.Path.Combine(templateFolder, fileName);
+                SaveTemplateImage(currentRegion, savePath);
+                MessageBox.Show($"Đã lưu template: {fileName}", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                UpdateTemplateList();
+                
+                // Reset sau khi lưu
+                hasSelectedRegion = false;
+                currentComponentType = "";
+                selectionRect.Visibility = Visibility.Collapsed;
+                UpdateAdjustmentControls();
+            }
+        }
+
+        private void PreviewTemplateImage(Rect region)
+        {
+            if (imgTraining.Source is BitmapSource bmpSrc)
+            {
+                using (System.Drawing.Bitmap originalBitmap = ConvertBitmapSourceToBitmap(bmpSrc))
+                {
+                    System.Drawing.Rectangle cropRect = new System.Drawing.Rectangle(
+                        (int)Math.Max(0, Math.Min(region.X, originalBitmap.Width - 1)),
+                        (int)Math.Max(0, Math.Min(region.Y, originalBitmap.Height - 1)),
+                        (int)Math.Min(region.Width, originalBitmap.Width - (int)Math.Max(0, Math.Min(region.X, originalBitmap.Width - 1))),
+                        (int)Math.Min(region.Height, originalBitmap.Height - (int)Math.Max(0, Math.Min(region.Y, originalBitmap.Height - 1)))
+                    );
+
+                    if (cropRect.Width <= 0 || cropRect.Height <= 0) return;
+
+                    using (System.Drawing.Bitmap croppedBitmap = originalBitmap.Clone(cropRect, originalBitmap.PixelFormat))
+                    {
+                        imgSelectedSample.Source = ConvertToBitmapSource(croppedBitmap);
+                    }
+                }
+            }
+        }
+
+        private void cboComponentType_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (hasSelectedRegion)
+            {
+                var selectedItem = cboComponentType.SelectedItem as ComboBoxItem;
+                if (selectedItem != null)
+                {
+                    currentComponentType = selectedItem.Content.ToString();
+                    UpdateAdjustmentControls();
+                }
             }
         }
     }
