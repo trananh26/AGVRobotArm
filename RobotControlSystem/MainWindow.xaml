@@ -418,9 +418,6 @@
             </Grid>
             <Grid Grid.Row="2">
 
-
-
-
                 <!--Map hoạt động chính-->
                 <Grid x:Name="Grid_Map" Background="AliceBlue">
                     <Rectangle Width="1" HorizontalAlignment="Left"/>
@@ -482,9 +479,7 @@
                     </Grid>
                 </Grid>
 
-
                 <!--Lịch sử lệnh-->
-
                 <Grid x:Name="Grid_CommandHistory" Background="#E8E8E8">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="1.5*"/>
@@ -553,7 +548,9 @@
 
                     </Grid>
                 </Grid>
-                <!--Map xử lý ảnh-->
+                
+                
+                <!--Map xử lý ảnh
                 <Grid x:Name="Grid_Vision" Background="White">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="1.5*"/>
@@ -659,7 +656,7 @@
                     </Grid>
 
                 </Grid>
-
+-->
             </Grid>
         </Grid>
     </Grid>

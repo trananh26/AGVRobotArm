@@ -16,6 +16,11 @@ namespace ACS.DL
         private static SqlCommand cmd = new SqlCommand();
         private static SqlDataAdapter da;
 
+        public static void UpdateAllTrayState(string stored, string eqiupType, string state)
+        {
+            throw new NotImplementedException();
+        }
+
         public static void UpdateTrayState(string stored, string PointID, string state)
         {
             try

@@ -71,6 +71,7 @@ namespace RobotControlSystem
 
         private SerialPort Robot = new SerialPort();
         private SerialPort AGV = new SerialPort();
+        private SerialPort AI = new SerialPort();
         private uc_STK _stk = new uc_STK();
         private List<Node> lstNode = new List<Node>();
         private List<Link> lstLink = new List<Link>();
@@ -166,8 +167,8 @@ namespace RobotControlSystem
         {
             try
             {
-                Grid_Vision.Visibility = Visibility.Visible;
-                Grid_Map.Visibility = Visibility.Hidden;
+                //Grid_Vision.Visibility = Visibility.Visible;
+                Grid_Map.Visibility = Visibility.Visible;
                 Grid_Robot.Visibility = Visibility.Hidden;
                 Grid_CommandHistory.Visibility = Visibility.Hidden;
                 Grid_CurrentCommand.Visibility = Visibility.Hidden;
@@ -220,6 +221,14 @@ namespace RobotControlSystem
                 Robot.BaudRate = int.Parse(clsFileIO.ReadValue("BAURATE_ROBOT"));
                 Robot.Open();
                 Robot.DataReceived += Robot_DataReceived;
+            }
+
+            if (!AI.IsOpen)
+            {
+                AI.PortName = clsFileIO.ReadValue("COM_AI");
+                AI.BaudRate = int.Parse(clsFileIO.ReadValue("BAURATE_AI"));
+                AI.Open();
+                AI.DataReceived += AI_DataReceived;
             }
 
         }
@@ -280,9 +289,17 @@ namespace RobotControlSystem
 
             //Kiểm tra trạng thái băng tải 2 OK
             PLC.GetDevice(bt2_OK, out s_bt2_OK);
+            if (s_bt2_OK == 0)
+            {
+                BLRobotArmControl.UpdateAllTrayState("OK", "EMPTY");
+            }
 
             //Kiểm tra trạng thái băng tải 2 NG
             PLC.GetDevice(bt2_NG, out s_bt2_NG);
+            if (s_bt2_NG == 0)
+            {
+                BLRobotArmControl.UpdateAllTrayState("NG", "EMPTY");
+            }
 
             //Kiểm tra trạng thái băng tải 4 OK
             PLC.GetDevice(bt4_OK, out s_bt4_OK);
@@ -307,8 +324,13 @@ namespace RobotControlSystem
             //_eq.ID == "B1STK01_MC02" || _eq.ID == "B1_CNV01_OP01"
         }
 
+        /// <summary>
+        /// Gửi yêu cầu điều khiển cánh tay robot
+        /// </summary>
+        /// <param name="mess"></param>
         private void SendRobotArmControlCommand(string mess)
         {
+            mess = "m" + mess.Substring(1, mess.Length - 1);
             Robot.Write(mess);
         }
 
@@ -750,19 +772,42 @@ namespace RobotControlSystem
                                         //Trái: O01, phải: O02
                                         switch (CrNode)
                                         {
-                                            //2101-> T2100
-                                            case "2101":
-                                                command = "AO012100";
+                                            ////2101-> T2100
+                                            //case "2101":
+                                            //    command = "AO012100";
+                                            //    break;
+                                            //2102-> T2101
+                                            case "2102":
+                                                command = "AO012101";
                                                 break;
 
-                                            //7100-> T8100
-                                            case "7100":
-                                                command = "AO018100";
+                                            case "3105":
+                                                command = "AO023106";
                                                 break;
-                                            //8106-> T8107
-                                            case "8106":
-                                                command = "AO018107";
+
+                                            case "5106":
+                                                command = "AO016106";
                                                 break;
+                                            case "6106":
+                                                command = "AO016107";
+                                                break;
+                                            ////2100-> T3100
+                                            //case "2100":
+                                            //    command = "AO013100";
+                                            //    break;
+                                            ////2101-> T3101
+                                            //case "2101":
+                                            //    command = "AO013101";
+                                            //    break;
+
+                                            ////7100-> T8100
+                                            //case "7100":
+                                            //    command = "AO018100";
+                                            //    break;
+                                            ////8106-> T8107
+                                            //case "8106":
+                                            //    command = "AO018107";
+                                            //    break;
                                             //3107-> T2107
                                             case "3107":
                                                 command = "AO012107";
@@ -798,49 +843,52 @@ namespace RobotControlSystem
                                     command = "AO012100";
                                     break;
                                 //3100-> T4100
-                                case "3100":
-                                    command = "AO014100";
+                                case "2100":
+                                    command = "AO013100";
+                                    break;
+                                case "3105":
+                                    command = "AO023106";
                                     break;
                                 //4106-> T4107
-                                case "4106":
-                                    command = "AO014107";
+                                case "5106":
+                                    command = "AO016106";
                                     break;
                                 //3106-> T3107
-                                case "3106":
-                                    command = "AO013107";
+                                case "6106":
+                                    command = "AO016107";
                                     break;
                                 //3107-> T2107
                                 case "3107":
                                     command = "AO012107";
                                     break;
-                                //6101-> T6100
-                                case "6101":
-                                    command = "AO016100";
-                                    break;
-                                //7100-> T8100
-                                case "7100":
-                                    command = "AO018100";
-                                    break;
-                                //7101-> T7100
-                                case "7101":
-                                    command = "AO017100";
-                                    break;
-                                //8106-> T8107
-                                case "8106":
-                                    command = "AO018107";
-                                    break;
-                                //7107-> T6107
-                                case "7107":
-                                    command = "AO016107";
-                                    break;
-                                //5101-> P4101
-                                case "5101":
-                                    command = "AO024101";
-                                    break;
-                                //5106-> P6106
-                                case "5106":
-                                    command = "AO026106";
-                                    break;
+                                ////6101-> T6100
+                                //case "6101":
+                                //    command = "AO016100";
+                                //    break;
+                                ////7100-> T8100
+                                //case "7100":
+                                //    command = "AO018100";
+                                //    break;
+                                ////7101-> T7100
+                                //case "7101":
+                                //    command = "AO017100";
+                                //    break;
+                                ////8106-> T8107
+                                //case "8106":
+                                //    command = "AO018107";
+                                //    break;
+                                ////7107-> T6107
+                                //case "7107":
+                                //    command = "AO016107";
+                                //    break;
+                                ////5101-> P4101
+                                //case "5101":
+                                //    command = "AO024101";
+                                //    break;
+                                ////5106-> P6106
+                                //case "5106":
+                                //    command = "AO026106";
+                                //    break;
                                 default:
                                     break;
                             }
@@ -1285,7 +1333,7 @@ namespace RobotControlSystem
 
                     if (node.TYPE == "COMMON")
                     {
-                       
+
                         uc_Tag[Node_ID] = new uc_Tag();
                         uc_Tag[Node_ID].Height = 6;
                         uc_Tag[Node_ID].Width = 6;
@@ -1673,6 +1721,13 @@ namespace RobotControlSystem
 
             Robot.DataReceived += Robot_DataReceived;
 
+
+            AI.PortName = clsFileIO.ReadValue("COM_AI");
+            AI.BaudRate = int.Parse(clsFileIO.ReadValue("BAURATE_AI"));
+            AI.Open();
+
+            AI.DataReceived += AI_DataReceived;
+
             //Arduino1.PortName = clsFileIO.ReadValue("COM_ARDUINO1");
             //Arduino1.BaudRate = int.Parse(clsFileIO.ReadValue("BAURATE"));
             //Arduino1.Open();
@@ -1685,6 +1740,7 @@ namespace RobotControlSystem
             //SWMPort.DataReceived += SWMPort_DataReceived;
 
         }
+
 
         /// <summary>
         /// Nhận dữ liệu từ Robot và xử lý
@@ -1717,7 +1773,43 @@ namespace RobotControlSystem
             }
         }
 
+        /// <summary>
+        /// Nhận kq từ tool xử lý ảnh
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void AI_DataReceived(object sender, SerialDataReceivedEventArgs e)
+        {
+            try
+            {
+                if (Robot.BytesToRead > 500)
+                {
+                    Robot.DiscardInBuffer();
+                    return;
+                }
+                string data = Robot.ReadTo("x");
+                //Lora_Receive.Enqueue(data);
 
+                this.Dispatcher.Invoke(() =>
+                {
+
+                    data = data.Trim();
+                    if (data.Contains("OK"))
+                    {
+                        detectResult = true;
+                    }
+                    else if (data.Contains("NG"))
+                    {
+                        detectResult = false;
+                    }
+                });
+
+            }
+            catch (Exception ee)
+            {
+                MessageBox.Show(ee.ToString(), "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
 
         /// <summary>
         /// Nhận dữ liệu AGV
@@ -1759,7 +1851,7 @@ namespace RobotControlSystem
         private void btnCommandHistory_Click(object sender, RoutedEventArgs e)
         {
             Grid_Map.Visibility = Visibility.Hidden;
-            Grid_Vision.Visibility = Visibility.Hidden;
+            //Grid_Vision.Visibility = Visibility.Hidden;
             Grid_Robot.Visibility = Visibility.Hidden;
             Grid_CommandHistory.Visibility = Visibility.Visible;
             Grid_CurrentCommand.Visibility = Visibility.Hidden;
@@ -1774,7 +1866,7 @@ namespace RobotControlSystem
         private void btnCrCommand_Click(object sender, RoutedEventArgs e)
         {
             Grid_Map.Visibility = Visibility.Hidden;
-            Grid_Vision.Visibility = Visibility.Hidden;
+            //Grid_Vision.Visibility = Visibility.Hidden;
             Grid_CommandHistory.Visibility = Visibility.Hidden;
             Grid_CurrentCommand.Visibility = Visibility.Visible;
             Grid_Robot.Visibility = Visibility.Hidden;
@@ -1848,7 +1940,7 @@ namespace RobotControlSystem
 
         private void btnDashboard_Click(object sender, RoutedEventArgs e)
         {
-            Grid_Vision.Visibility = Visibility.Visible;
+            //Grid_Vision.Visibility = Visibility.Visible;
             Grid_Map.Visibility = Visibility.Hidden;
             Grid_CommandHistory.Visibility = Visibility.Hidden;
             Grid_CurrentCommand.Visibility = Visibility.Hidden;
@@ -1928,7 +2020,7 @@ namespace RobotControlSystem
         private void btnAGV_Click(object sender, RoutedEventArgs e)
         {
 
-            Grid_Vision.Visibility = Visibility.Hidden;
+            //Grid_Vision.Visibility = Visibility.Hidden;
             Grid_Map.Visibility = Visibility.Visible;
             Grid_CommandHistory.Visibility = Visibility.Hidden;
             Grid_CurrentCommand.Visibility = Visibility.Hidden;
@@ -1937,8 +2029,8 @@ namespace RobotControlSystem
 
         private void btn_Pass_Click(object sender, RoutedEventArgs e)
         {
-            lblImageStatus.Content = "OK";
-            lblImageStatus.Foreground = System.Windows.Media.Brushes.Green;
+            //lblImageStatus.Content = "OK";
+            //lblImageStatus.Foreground = System.Windows.Media.Brushes.Green;
             detectResult = true; // Đánh dấu là đã nhận dạng thành công
 
             PLC.SetDevice(bt1_RUN, 1);
@@ -1946,8 +2038,8 @@ namespace RobotControlSystem
 
         private void btn_Fail_Click(object sender, RoutedEventArgs e)
         {
-            lblImageStatus.Content = "NG";
-            lblImageStatus.Foreground = System.Windows.Media.Brushes.Red;
+            //lblImageStatus.Content = "NG";
+            //lblImageStatus.Foreground = System.Windows.Media.Brushes.Red;
             detectResult = false; // Đánh dấu là nhận dạng thất bại
 
             PLC.SetDevice(bt1_RUN, 1);
@@ -1963,10 +2055,10 @@ namespace RobotControlSystem
             {
                 sourceImage = originalImage;
             }
-            else if (img_InputImage.Source != null)
-            {
-                sourceImage = img_InputImage.Source;
-            }
+            //else if (img_InputImage.Source != null)
+            //{
+            //    sourceImage = img_InputImage.Source;
+            //}
 
             var trainWindow = new wdTrainModel(sourceImage);
             if (trainWindow.ShowDialog() == true)
@@ -2001,7 +2093,7 @@ namespace RobotControlSystem
 
                     // Lưu ảnh gốc trước khi xử lý
                     originalImage = bitmap;
-                    img_InputImage.Source = bitmap;
+                    //img_InputImage.Source = bitmap;
 
                     // Thực hiện nhận dạng
                     DetectComponents(openFileDialog.FileName);
@@ -2060,8 +2152,8 @@ namespace RobotControlSystem
                             }
                         }
                     }
-                    img_InputImage.Source = ConvertToBitmapSource(img.ToBitmap());
-                    dtg_Result.ItemsSource = results;
+                    //img_InputImage.Source = ConvertToBitmapSource(img.ToBitmap());
+                    //dtg_Result.ItemsSource = results;
                 }
             }
             catch (Exception ex)
@@ -2108,7 +2200,7 @@ namespace RobotControlSystem
                                 Int32Rect.Empty,
                                 BitmapSizeOptions.FromEmptyOptions()
                             );
-                            img_Camera.Source = bitmapSource;
+                            //img_Camera.Source = bitmapSource;
                         }
                         finally
                         {
@@ -2134,7 +2226,7 @@ namespace RobotControlSystem
 
             Grid_Robot.Visibility = Visibility.Visible;
             Grid_Map.Visibility = Visibility.Hidden;
-            Grid_Vision.Visibility = Visibility.Hidden;
+            //Grid_Vision.Visibility = Visibility.Hidden;
             Grid_CommandHistory.Visibility = Visibility.Hidden;
             Grid_CurrentCommand.Visibility = Visibility.Hidden;
         }

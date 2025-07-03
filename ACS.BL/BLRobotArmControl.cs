@@ -28,6 +28,12 @@ namespace ACS.BL
 			return DLLayout.GetDataTable(cmd);
 		}
 
+        public static void UpdateAllTrayState(string EqiupType, string State)
+        {
+            string Stored = "Proc_UpdateAllTrayState";
+            DLRobotArmControl.UpdateAllTrayState(Stored, EqiupType, State);
+        }
+
         public static void UpdateTrayState(string arm_TransferDest, string State)
         {
 			string Stored = "Proc_UpdateRobotArmState";
