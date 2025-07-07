@@ -322,6 +322,36 @@ namespace RobotControlSystem
                 BLTransportCommand.UpdateEqiupmentState("B1_CNV01_OP02", "EMPTY");
             }
             //_eq.ID == "B1STK01_MC02" || _eq.ID == "B1_CNV01_OP01"
+
+            //BT cấp phôi
+            if (s_bt1 == 1)
+                pnlPhoi.Fill = System.Windows.Media.Brushes.DarkGreen;
+            else
+                pnlPhoi.Fill = System.Windows.Media.Brushes.DarkOrange;
+
+            //BT OK1
+            if (s_bt2_OK == 1)
+                pnlOK1.Fill = System.Windows.Media.Brushes.DarkGreen;
+            else
+                pnlOK1.Fill = System.Windows.Media.Brushes.DarkOrange;
+
+            //BT NG1
+            if (s_bt2_NG == 1)
+                pnlNG1.Fill = System.Windows.Media.Brushes.DarkGreen;
+            else
+                pnlNG1.Fill = System.Windows.Media.Brushes.DarkOrange;
+
+            //BT OK4
+            if (s_bt4_OK == 1)
+                pnlOK2.Fill = System.Windows.Media.Brushes.DarkGreen;
+            else
+                pnlOK2.Fill = System.Windows.Media.Brushes.DarkOrange;
+
+            //BT NG4
+            if (s_bt4_NG == 1)
+                pnlNG2.Fill = System.Windows.Media.Brushes.DarkGreen;
+            else
+                pnlNG2.Fill = System.Windows.Media.Brushes.DarkOrange;
         }
 
         /// <summary>
@@ -504,7 +534,7 @@ namespace RobotControlSystem
                 case "R":
                     BLLayout.UpdateAGVAlarm(ID, "NOALARM");
                     break;
-                case "S":
+                case "S": //A001S000000
                     string RunStop = code.Substring(2, 1);
                     string FullEmpty = code.Substring(3, 1);
                     BLLayout.UpdateAGVState(ID, RunStop, FullEmpty);
@@ -1664,10 +1694,20 @@ namespace RobotControlSystem
         private void CallAGV(string AGVID, string Dest)
         {
             string mess = AGVID + "AC00" + Dest;
+            if (Dest == "4106" || Dest == "5106")
             {
-                AGV.Write(mess + "x");
+                mess = AGVID + "AC11" + Dest;   //gọi AGV đi lấy hàng, BT AGV quay từ phải sang trái
+            }
+            else if (Dest == "2103" || Dest == "2104")
+            {
+                mess = AGVID + "AC22" + Dest;   //gọi AGV đi trả hàng, BT AGV quay từ trái sang phải
+            }
+            else
+            {
+                mess = AGVID + "AC00" + Dest;   //AGV tự tính toán
             }
 
+            AGV.Write(mess + "x");
 
             //Update lại dest AGV
             foreach (AGV _agv in lstAGV)
@@ -1797,10 +1837,12 @@ namespace RobotControlSystem
                     if (data.Contains("OK"))
                     {
                         detectResult = true;
+                        PLC.SetDevice(bt1_RUN, 1);
                     }
                     else if (data.Contains("NG"))
                     {
                         detectResult = false;
+                        PLC.SetDevice(bt1_RUN, 1);
                     }
                 });
 

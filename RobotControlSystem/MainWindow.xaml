@@ -418,20 +418,6 @@
             </Grid>
             <Grid Grid.Row="2">
 
-                <!--Map hoạt động chính-->
-                <Grid x:Name="Grid_Map" Background="AliceBlue">
-                    <Rectangle Width="1" HorizontalAlignment="Left"/>
-
-                    <StackPanel Name="map"  >
-                        <Canvas x:Name="cvs_Map" Margin="20,10,0,0"
-                             RenderTransformOrigin="0.5,0.5">
-                            <Canvas.RenderTransform>
-                                <MatrixTransform x:Name="mt"/>
-                            </Canvas.RenderTransform>
-                        </Canvas>
-
-                    </StackPanel>
-                </Grid>
 
                 <!--Danh sách lệnh đang thực hiện-->
                 <Grid x:Name="Grid_CurrentCommand" Background="#E8E8E8">
@@ -548,8 +534,65 @@
 
                     </Grid>
                 </Grid>
-                
-                
+
+                <!--Map hoạt động chính-->
+                <Grid x:Name="Grid_Map" >
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="6.5*"/>
+                        <ColumnDefinition Width="1*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid Grid.Column="0" Background="AliceBlue">
+                        <Rectangle Width="1" HorizontalAlignment="Left"/>
+
+                        <StackPanel Name="map"  >
+                            <Canvas x:Name="cvs_Map" Margin="20,10,0,0"
+                             RenderTransformOrigin="0.5,0.5">
+                                <Canvas.RenderTransform>
+                                    <MatrixTransform x:Name="mt"/>
+                                </Canvas.RenderTransform>
+                            </Canvas>
+
+                        </StackPanel>
+                    </Grid>
+                    <Grid Grid.Column="1" Background="White">
+                        <StackPanel>
+
+                            <TextBlock Width="200" Height="30" VerticalAlignment="Center" Margin="10,150,0,0" 
+                                                    Text="TRẠNG THÁI BĂNG TẢI ĐẦU VÀO" HorizontalAlignment="Center" FontWeight="Bold"/>
+
+                            <TextBlock Width="100" Height="30" VerticalAlignment="Bottom" Margin="10,25,0,0" 
+                                                   Text="Cấp phôi" HorizontalAlignment="Left" FontWeight="Bold"/>
+                            <Rectangle Height="30" Width="100" StrokeThickness="1" Fill="DarkOrange" Margin="80,-50,0,0"
+                                       x:Name="pnlPhoi"/>
+                            
+                            
+                            <TextBlock Width="200" Height="30" VerticalAlignment="Bottom" Margin="10,85,0,0" 
+                                                    Text="TRẠNG THÁI BĂNG TẢI PHÂN LOẠI" HorizontalAlignment="Center" FontWeight="Bold"/>
+                            
+                            <TextBlock Width="100" Height="30" VerticalAlignment="Bottom" Margin="10,25,0,0" 
+                                                   Text="Băng tải 1.2" HorizontalAlignment="Left" FontWeight="Bold"/>
+                            <Rectangle Height="30" Width="100" StrokeThickness="1" Fill="DarkOrange" Margin="80,-50,0,0" 
+                                       x:Name="pnlOK1"/>
+
+                            <TextBlock Width="100" Height="30" VerticalAlignment="Bottom" Margin="10,25,0,0" 
+                                                   Text="Băng tải 2.2" HorizontalAlignment="Left" FontWeight="Bold"/>
+                            <Rectangle Height="30" Width="100" StrokeThickness="1" Fill="DarkOrange" Margin="80,-50,0,0"
+                                       x:Name="pnlNG1"/>
+
+                            <TextBlock Width="100" Height="30" VerticalAlignment="Bottom" Margin="10,25,0,0" 
+                                                   Text="Băng tải 1.3" HorizontalAlignment="Left" FontWeight="Bold"/>
+                            <Rectangle Height="30" Width="100" StrokeThickness="1" Fill="DarkOrange" Margin="80,-50,0,0"
+                                       x:Name="pnlOK2"/>
+
+                            <TextBlock Width="100" Height="30" VerticalAlignment="Bottom" Margin="10,25,0,0" 
+                                                   Text="Băng tải 2.3" HorizontalAlignment="Left" FontWeight="Bold"/>
+                            <Rectangle Height="30" Width="100" StrokeThickness="1" Fill="DarkOrange" Margin="80,-50,0,0"
+                                       x:Name="pnlNG2"/>
+
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+
                 <!--Map xử lý ảnh
                 <Grid x:Name="Grid_Vision" Background="White">
                     <Grid.RowDefinitions>
