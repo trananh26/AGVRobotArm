@@ -410,6 +410,11 @@ namespace RobotControlSystem
             //Báo tra hàng thành công
             else if (data.Contains("A4"))
             {
+                string mess = BLRobotArmControl.GetControlPointByID("IP_Material");
+                mess = "i" + mess.Substring(1, mess.Length - 1);
+                Robot.Write(mess);
+
+
                 //Cập nhật thêm 1 ô hàng OK hoặc NG full OK hoặc NG
                 if (isTransfer_OKMaterial)
                 {
@@ -1542,8 +1547,8 @@ namespace RobotControlSystem
             string ID_Dest = _eq.ToNode;
             foreach (AGV _agv in lstAGV)
             {
-                if (_agv.BAYID == _eq.BayID)
-                {
+            //    if (_agv.BAYID == _eq.BayID)
+            //    {
                     TransportCommand Transport = new TransportCommand();
                     Transport.AGVID = _agv.ID;
                     Transport.STKID = "STK01_MECA2025";
@@ -1577,7 +1582,7 @@ namespace RobotControlSystem
                     }
                 }
 
-            }
+            //}
 
         }
 

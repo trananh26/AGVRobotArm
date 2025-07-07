@@ -4,6 +4,7 @@ using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -16,9 +17,30 @@ namespace ACS.DL
         private static SqlCommand cmd = new SqlCommand();
         private static SqlDataAdapter da;
 
-        public static void UpdateAllTrayState(string stored, string eqiupType, string state)
+        public static void UpdateAllTrayState(string stored, string trayType, string state)
         {
-            throw new NotImplementedException();
+
+            try
+            {
+                if (conn.State == ConnectionState.Closed)
+                {
+                    conn.Open();
+                }
+
+                cmd.Connection = conn;
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandText = stored;
+                cmd.Parameters.Clear();
+                cmd.Parameters.AddWithValue("@PointType", trayType);
+                cmd.Parameters.AddWithValue("@PointState", state);
+
+                cmd.ExecuteNonQuery();
+                conn.Close();
+            }
+            catch (Exception ee)
+            {
+
+            }
         }
 
         public static void UpdateTrayState(string stored, string PointID, string state)
